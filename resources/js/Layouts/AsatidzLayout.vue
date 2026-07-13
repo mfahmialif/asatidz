@@ -1,4 +1,5 @@
 <template>
+ <Head :title="pageTitle" />
  <div :data-theme="isDark ? 'dark' : 'light'" class="admin-root relative flex h-screen w-screen font-display overflow-hidden transition-colors duration-500">
   <Transition name="fade">
    <div v-if="sidebarOpen" class="sidebar-overlay fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden" @click="sidebarOpen = false"></div>
@@ -8,13 +9,12 @@
    <AsatidzSidebar :collapsed="false" class="h-full" @close-sidebar="sidebarOpen = false" />
   </div>
 
-  <AsatidzSidebar :collapsed="false" :class="['sidebar-mobile fixed z-40 lg:hidden transition-transform duration-300', sidebarOpen ? 'translate-x-0' : '-translate-x-full']" style="width: 256px" @close-sidebar="sidebarOpen = false" />
-
   <main class="flex flex-1 flex-col h-screen overflow-hidden transition-colors duration-500 min-w-0" :style="{ background: 'var(--bg-main)' }">
-   <AsatidzNavbar :page-title="pageTitle" :is-dark="isDark" @toggle-theme="toggleTheme" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
-   <div class="flex-1 min-h-0">
+   <AsatidzNavbar :page-title="pageTitle" :is-dark="isDark" @toggle-theme="toggleTheme" />
+   <div class="flex-1 min-h-0 relative">
     <simplebar class="h-full content-scroll" :auto-hide="true">
-     <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+     <!-- Add padding bottom on mobile to accommodate bottom nav -->
+     <div class="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto w-full">
       <Transition name="page" mode="out-in">
        <slot />
       </Transition>
@@ -22,16 +22,19 @@
     </simplebar>
    </div>
   </main>
+  
+  <AsatidzBottomNav />
  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { usePage } from '@inertiajs/vue3'
+import { Head, usePage } from '@inertiajs/vue3'
 import simplebar from 'simplebar-vue'
 import 'simplebar-vue/dist/simplebar.min.css'
 import AsatidzSidebar from '../components/layouts/asatidz/AsatidzSidebar.vue'
 import AsatidzNavbar from '../components/layouts/asatidz/AsatidzNavbar.vue'
+import AsatidzBottomNav from '../components/layouts/asatidz/AsatidzBottomNav.vue'
 import api from '../axios'
 import { readThemePreference, resolveThemePreference, writeThemePreference } from '../composables/useThemePreference'
 import { applyAccentColor, applyCachedAccentColor } from '../utils/appearance'

@@ -1,10 +1,7 @@
 <template>
- <header class="top-header flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 shrink-0 transition-colors duration-500">
+ <header class="top-header relative z-[60] flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 shrink-0 transition-colors duration-500">
   <div class="flex items-center gap-3">
-   <button @click="$emit('toggle-sidebar')" class="hamburger-btn p-2 rounded-lg transition-colors cursor-pointer lg:hidden">
-    <span class="material-symbols-outlined text-[24px]">menu</span>
-   </button>
-   <h2 class="text-lg sm:text-xl font-bold text-heading tracking-tight">{{ pageTitle }}</h2>
+   <h2 class="text-lg sm:text-xl font-bold text-heading tracking-tight ml-2">{{ pageTitle }}</h2>
   </div>
   <div class="flex items-center gap-2 sm:gap-4">
    <button @click="$emit('toggle-theme')" class="theme-toggle relative p-2 rounded-full transition-all duration-500 cursor-pointer" :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
@@ -19,12 +16,16 @@
      <span class="material-symbols-outlined text-accent text-xl sm:text-2xl">person</span>
     </div>
     <Transition name="dropdown">
-     <div v-if="profileOpen" class="profile-dropdown absolute right-0 mt-2 w-64 rounded-xl overflow-hidden z-50">
+     <div v-if="profileOpen" class="profile-dropdown absolute right-0 mt-2 w-64 rounded-xl overflow-hidden z-[70]">
       <div class="px-4 py-3 border-b profile-dropdown-border">
        <p class="text-sm font-bold text-heading truncate">{{ authStore.user?.name || 'User' }}</p>
        <p class="text-xs text-muted truncate mt-0.5">{{ authStore.user?.email || '' }}</p>
       </div>
       <div class="py-1.5">
+       <Link href="/asatidz/profil-saya" class="profile-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm transition-colors w-full text-left cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+        <span>Profil Saya</span>
+       </Link>
        <button @click="handleLogout" class="profile-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm transition-colors w-full text-left cursor-pointer logout-item">
         <span class="material-symbols-outlined text-[20px]">logout</span>
         <span>Logout</span>
@@ -39,6 +40,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import { useAuthStore } from '../../../stores/auth'
 
 defineProps({

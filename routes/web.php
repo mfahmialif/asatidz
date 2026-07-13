@@ -38,4 +38,34 @@ Route::prefix('asatidz')->middleware('auth:sanctum')->group(function () {
   Route::get('/', function () { return redirect('/asatidz/dashboard'); });
   Route::get('/dashboard', function () { return Inertia::render('asatidz/dashboard/Index', ['pageTitle' => 'Dashboard']); })->name('asatidz.dashboard');
   Route::get('/kegiatan-asatidz', function () { return Inertia::render('asatidz/kegiatan-asatidz/Index', ['pageTitle' => 'Kegiatanku']); })->name('asatidz.kegiatan-asatidz');
+  Route::get('/profil-saya', function () { 
+      $user = auth('sanctum')->user()->load('asatidz');
+      return Inertia::render('asatidz/profile/Index', ['pageTitle' => 'Profil Saya', 'userData' => $user]); 
+  })->name('asatidz.profile');
+  
+  Route::post('/profil-saya', function (\Illuminate\Http\Request $request) {
+      $user = auth('sanctum')->user();
+      $request->validate([
+          'name' => 'required|string',
+          'email' => 'required|email|unique:users,email,'.$user->id,
+          'no_telepon' => 'nullable|string',
+          'alamat' => 'nullable|string',
+      ]);
+      $user->update(['name' => $request->name, 'email' => $request->email]);
+      if ($user->asatidz) {
+          $user->asatidz->update([
+              'nama' => $request->name,
+              'no_telepon' => $request->no_telepon,
+              'alamat' => $request->alamat
+          ]);
+      } else {
+          \App\Models\Asatidz::create([
+              'user_id' => $user->id,
+              'nama' => $request->name,
+              'no_telepon' => $request->no_telepon,
+              'alamat' => $request->alamat
+          ]);
+      }
+      return redirect()->back();
+  })->name('asatidz.profile.update');
 });

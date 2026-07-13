@@ -10,13 +10,8 @@
     <h1 class="text-heading text-lg font-bold leading-normal whitespace-nowrap">{{ page.props.app_settings?.system_name || 'Asatidz' }}</h1>
     <p class="text-muted text-sm font-medium leading-normal whitespace-nowrap">Admin CMS</p>
    </Link>
-   <Link
-    v-if="collapsed"
-    href="/"
-    class="brand-icon-link"
-    title="Buka landing page"
-   >
-    <span class="material-symbols-outlined text-accent text-[28px]">school</span>
+   <Link v-if="collapsed" href="/" class="brand-icon-link">
+    <img src="/img/logo.png" alt="Logo" class="w-8 h-8 object-contain" />
    </Link>
    <button @click="$emit('close-sidebar')" class="close-btn p-1.5 rounded-lg transition-colors cursor-pointer lg:hidden">
     <span class="material-symbols-outlined text-[22px]">close</span>

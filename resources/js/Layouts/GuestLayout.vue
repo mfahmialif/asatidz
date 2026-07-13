@@ -111,8 +111,8 @@ onUnmounted(() => {
             <!-- Logo -->
             <div class="flex justify-center mb-10">
                 <Link href="/" class="flex items-center gap-3 group">
-                    <div class="w-14 h-14 flex items-center justify-center bg-white dark:bg-white/10 rounded-2xl shadow-xl shadow-sky-500/10 dark:shadow-sky-500/5 border border-white/50 dark:border-white/10 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
-                        <span class="material-symbols-outlined text-sky-600 dark:text-sky-400 text-3xl">school</span>
+                    <div class="w-14 h-14 flex items-center justify-center bg-white dark:bg-white/10 rounded-2xl shadow-xl shadow-sky-500/10 dark:shadow-sky-500/5 border border-white/50 dark:border-white/10 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden p-2">
+                        <img src="/img/logo.png" alt="Logo" class="w-full h-full object-contain" />
                     </div>
                     <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Asatidz</span>
                 </Link>

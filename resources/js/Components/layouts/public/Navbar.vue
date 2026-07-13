@@ -167,11 +167,11 @@ const props = defineProps({
   default: () => {
    const p = usePage().props;
    return {
-    mode: p.app_settings?.navbar_brand_mode || 'text',
+    mode: p.app_settings?.navbar_brand_mode || 'logo',
     icon: p.app_settings?.navbar_text_icon || 'auto_stories',
     title: p.app_settings?.navbar_text_title || p.app_settings?.system_name || 'Asatidz',
     subtitle: p.app_settings?.navbar_text_subtitle || 'Prodi',
-    logoUrl: p.app_settings?.navbar_logo_url || '',
+    logoUrl: p.app_settings?.navbar_logo_url || '/img/logo.png',
    }
   },
  },

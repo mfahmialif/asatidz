@@ -1,4 +1,5 @@
 <template>
+ <Head :title="pageTitle" />
  <div :data-theme="isDark ? 'dark' : 'light'"
     class="admin-root relative flex h-screen w-screen font-display overflow-hidden transition-colors duration-500">
 
@@ -77,7 +78,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { usePage } from '@inertiajs/vue3'
+import { Head, usePage } from '@inertiajs/vue3'
 import simplebar from 'simplebar-vue'
 import 'simplebar-vue/dist/simplebar.min.css'
 import AdminSidebar from '../components/layouts/admin/AdminSidebar.vue'

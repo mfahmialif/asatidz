@@ -44,10 +44,12 @@
    </div>
   </div>
 
-  <!-- ═══ TABLE ═══ -->
+  <!-- ═══ TABLE & DATA VIEW ═══ -->
   <div class="flex flex-col gap-4">
    <div class="table-wrapper rounded-xl overflow-hidden shadow-2xl">
-    <div class="overflow-x-auto p-2">
+    
+    <!-- DESKTOP TABLE (Hidden on mobile/tablet) -->
+    <div class="hidden lg:block overflow-x-auto p-2">
      <table class="w-full text-left border-collapse">
       <thead>
        <tr class="table-head">
@@ -94,18 +96,55 @@
      </table>
     </div>
 
+    <!-- MOBILE & TAB LIST VIEW (Hidden on desktop) -->
+    <div class="block lg:hidden p-4 bg-[var(--bg-table-body)]">
+     <div v-if="store.loading" class="py-10 text-center text-sm font-medium" style="color: var(--text-muted)">Memuat data...</div>
+     <div v-else-if="!store.kegiatans.length" class="py-10 text-center text-sm font-medium" style="color: var(--text-muted)">Belum ada kegiatan.</div>
+     
+     <div class="flex flex-col gap-4" v-else>
+      <div v-for="item in store.kegiatans" :key="item.id" class="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-input)] shadow-sm">
+       <!-- Card Header -->
+       <div class="flex items-start justify-between border-b border-[var(--border)] pb-3 mb-3">
+        <div class="flex flex-col">
+         <span class="text-[0.95rem] font-bold" style="color: var(--text-heading)">{{ formatDate(item.tanggal_kegiatan) }}</span>
+         <span class="text-xs font-bold mt-1" style="color: var(--text-muted)">Total Poin: <span class="text-[var(--color-accent)]">{{ item.total_poin }}</span></span>
+        </div>
+        <div class="flex items-center gap-1 shrink-0 bg-[var(--bg-card)] rounded-lg p-0.5 border border-[var(--border-light)] shadow-sm">
+         <button @click="openEditModal(item)" class="action-btn p-1.5 rounded-md transition-all duration-200" title="Edit">
+          <span class="material-symbols-outlined text-[18px]">edit</span>
+         </button>
+         <button @click="confirmDelete(item)" class="action-btn action-btn-delete p-1.5 rounded-md transition-all duration-200" title="Delete">
+          <span class="material-symbols-outlined text-[18px]">delete</span>
+         </button>
+        </div>
+       </div>
+       
+       <!-- Card Body (Details) -->
+       <div class="flex flex-col gap-3">
+        <div v-for="detail in item.details" :key="detail.id" class="flex gap-2">
+         <span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5 text-[var(--color-accent)]">check_circle</span>
+         <div class="flex flex-col">
+          <span class="text-sm font-bold" style="color: var(--text-body)">{{ detail.master_kegiatan?.nama }}</span>
+          <span v-if="detail.keterangan" class="text-[0.8rem] italic opacity-80 mt-0.5" style="color: var(--text-muted)">{{ detail.keterangan }}</span>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+
     <!-- Pagination -->
-    <div class="pagination-bar flex items-center justify-between px-6 py-4">
-     <span class="text-sm font-medium" style="color: var(--text-muted)">Menampilkan {{ store.pagination.from || 0 }} ke {{ store.pagination.to || 0 }} dari {{ store.pagination.total || 0 }} data</span>
-     <div class="flex items-center gap-1.5 ml-auto">
-      <button @click="goToPage(currentPage - 1)" class="page-btn p-2 rounded-lg flex items-center justify-center disabled:opacity-50 cursor-pointer" :disabled="currentPage <= 1">
+    <div class="pagination-bar flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 gap-4 sm:gap-0">
+     <span class="text-xs sm:text-sm font-medium text-center sm:text-left" style="color: var(--text-muted)">Menampilkan {{ store.pagination.from || 0 }} ke {{ store.pagination.to || 0 }} dari {{ store.pagination.total || 0 }} data</span>
+     <div class="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
+      <button @click="goToPage(currentPage - 1)" class="page-btn p-1.5 rounded-lg flex items-center justify-center disabled:opacity-50 cursor-pointer" :disabled="currentPage <= 1">
        <span class="material-symbols-outlined text-[20px]">chevron_left</span>
       </button>
       <template v-for="p in pageNumbers" :key="p">
-       <span v-if="p === '...'" class="w-8 h-8 flex items-center justify-center text-sm" style="color: var(--text-muted)">...</span>
-       <button v-else @click="goToPage(p)" :class="p === currentPage ? 'page-btn-active w-8 h-8 rounded-full font-bold text-sm flex items-center justify-center' : 'page-btn w-8 h-8 rounded-full text-sm font-medium flex items-center justify-center cursor-pointer'">{{ p }}</button>
+       <span v-if="p === '...'" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-sm" style="color: var(--text-muted)">...</span>
+       <button v-else @click="goToPage(p)" :class="p === currentPage ? 'page-btn-active w-7 h-7 sm:w-8 sm:h-8 rounded-full font-bold text-sm flex items-center justify-center' : 'page-btn w-7 h-7 sm:w-8 sm:h-8 rounded-full text-sm font-medium flex items-center justify-center cursor-pointer'">{{ p }}</button>
       </template>
-      <button @click="goToPage(currentPage + 1)" class="page-btn p-2 rounded-lg flex items-center justify-center cursor-pointer" :disabled="currentPage >= store.pagination.lastPage">
+      <button @click="goToPage(currentPage + 1)" class="page-btn p-1.5 rounded-lg flex items-center justify-center cursor-pointer" :disabled="currentPage >= store.pagination.lastPage">
        <span class="material-symbols-outlined text-[20px]">chevron_right</span>
       </button>
      </div>
@@ -114,78 +153,96 @@
   </div>
 
   <!-- ═══ MODAL ═══ -->
-  <Transition name="fade">
-   <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showModal = false">
-    <div class="modal-card w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl">
-     
-     <div class="p-6 shrink-0 border-b border-[var(--border)]">
-      <h3 class="text-lg font-bold" style="color: var(--text-heading)">{{ editingData ? 'Edit Kegiatan Harian' : 'Input Kegiatan Harian' }}</h3>
-     </div>
-
-     <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
-      <div class="flex flex-col gap-1.5">
-       <label class="text-sm font-medium" style="color: var(--text-body)">Tanggal Kegiatan</label>
-       <input v-model="form.tanggal_kegiatan" type="date" class="filter-input w-full md:w-1/2 rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
+  <Teleport to=".admin-root" v-if="isMounted">
+   <Transition name="modal-overlay">
+    <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end lg:items-center justify-center p-0 lg:p-4" @click.self="showModal = false">
+     <div class="modal-card w-full max-w-3xl max-h-[95vh] lg:max-h-[90vh] flex flex-col rounded-t-3xl rounded-b-none lg:rounded-2xl relative shadow-[0_-10px_40px_rgba(0,0,0,0.3)] lg:shadow-2xl"
+          :style="{ transform: isDragging ? `translateY(${currentY}px)` : '', transition: isDragging ? 'none' : '' }"
+          @touchstart="onTouchStart"
+          @touchmove="onTouchMove"
+          @touchend="onTouchEnd">
+      
+      <!-- Mobile Drag Handle indicator -->
+      <div class="w-full flex justify-center py-3 lg:hidden absolute top-0 left-0 right-0 pointer-events-none">
+       <div class="w-12 h-1.5 rounded-full bg-[var(--border)] opacity-50"></div>
+      </div>
+      
+      <div class="p-5 pt-8 lg:pt-6 lg:p-6 shrink-0 border-b border-[var(--border)] flex justify-between items-center">
+       <h3 class="text-lg font-bold" style="color: var(--text-heading)">{{ editingData ? 'Edit Kegiatan Harian' : 'Input Kegiatan Harian' }}</h3>
+       <button @click="showModal = false" class="lg:hidden p-2 rounded-full hover:bg-[var(--bg-input)] bg-[var(--bg-input)] border border-[var(--border)]">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+       </button>
       </div>
 
-      <div class="flex flex-col gap-3">
+      <div ref="scrollContainer" class="p-5 lg:p-6 overflow-y-auto flex-1 flex flex-col gap-6">
+      <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-medium" style="color: var(--text-body)">Tanggal Kegiatan</label>
+       <input v-model="form.tanggal_kegiatan" type="date" class="filter-input w-full lg:w-1/2 rounded-xl py-3 lg:py-2.5 px-4 text-[0.95rem] lg:text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
+      </div>
+
+      <div class="flex flex-col gap-4 lg:gap-3">
        <div class="flex items-center justify-between">
         <label class="text-sm font-medium" style="color: var(--text-body)">Daftar Aktivitas</label>
-        <button @click="addDetailRow" type="button" class="text-sm font-medium text-accent hover:underline cursor-pointer">
-         + Tambah Aktivitas
-        </button>
        </div>
        
-       <div v-for="(detail, index) in form.details" :key="index" class="p-4 rounded-xl border border-[var(--border)] flex flex-col gap-4 relative">
-        <button v-if="form.details.length > 1" @click="removeDetailRow(index)" type="button" class="absolute top-3 right-3 text-red-500 hover:bg-red-500/10 p-1.5 rounded-lg cursor-pointer transition-colors" title="Hapus baris">
-         <span class="material-symbols-outlined text-[18px]">close</span>
-        </button>
-        
-        <div class="flex flex-col md:flex-row gap-4">
-         <div class="flex flex-col gap-1.5 flex-1">
-          <label class="text-xs font-medium" style="color: var(--text-muted)">Jenis Kegiatan</label>
-          <VueMultiselect
-           v-model="detail.masterKegiatanOption"
-           :options="masterKegiatanOptions"
-           :close-on-select="true"
-           :searchable="true"
-           :allow-empty="false"
-           :show-labels="false"
-           open-direction="bottom"
-           label="name_with_point"
-           track-by="id"
-           placeholder="Pilih Kegiatan"
-          />
-         </div>
-         <div class="flex flex-col gap-1.5 flex-1">
-          <label class="text-xs font-medium" style="color: var(--text-muted)">Keterangan / Deskripsi (Opsional)</label>
-          <input v-model="detail.keterangan" type="text" class="filter-input w-full rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent" placeholder="Contoh: Mengajar kelas 1A" />
+       <div class="flex flex-col gap-4">
+        <div v-for="(detail, index) in form.details" :key="index" class="p-5 lg:p-4 rounded-2xl lg:rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-sm flex flex-col gap-4 relative">
+         <button v-if="form.details.length > 1" @click="removeDetailRow(index)" type="button" class="absolute top-2 right-2 text-red-500 hover:bg-red-500/10 p-2 rounded-lg cursor-pointer transition-colors bg-red-500/5 lg:bg-transparent" title="Hapus baris">
+          <span class="material-symbols-outlined text-[20px] lg:text-[18px]">close</span>
+         </button>
+         
+         <div class="flex flex-col lg:flex-row gap-5 lg:gap-4 mt-4 lg:mt-0">
+          <div class="flex flex-col gap-2 flex-1">
+           <label class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-muted)">Jenis Kegiatan</label>
+           <VueMultiselect
+            v-model="detail.masterKegiatanOption"
+            :options="getAvailableOptions(index)"
+            :close-on-select="true"
+            :searchable="true"
+            :allow-empty="false"
+            :show-labels="false"
+            open-direction="bottom"
+            label="name_with_point"
+            track-by="id"
+            placeholder="Pilih Kegiatan"
+            class="mobile-friendly-multiselect"
+           />
+          </div>
+          <div class="flex flex-col gap-2 flex-1">
+           <label class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-muted)">Keterangan (Opsional)</label>
+           <input v-model="detail.keterangan" type="text" class="filter-input w-full rounded-xl py-3 lg:py-2.5 px-4 text-[0.95rem] lg:text-sm focus:outline-none focus:ring-1 focus:ring-accent" placeholder="Contoh: Mengajar kelas 1A" />
+          </div>
          </div>
         </div>
        </div>
+
+       <button @click="addDetailRow" type="button" class="mt-2 text-[0.95rem] lg:text-sm font-bold text-accent hover:bg-accent/10 border border-dashed border-accent/50 py-3 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-[20px]">add_circle</span> Tambah Aktivitas Lain
+       </button>
       </div>
       
-      <div v-if="formError" class="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{{ formError }}</div>
+      <div v-if="formError" class="text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{{ formError }}</div>
       <!-- Extra space for dropdown -->
-      <div class="h-32"></div>
+      <div class="h-32 lg:h-20 shrink-0"></div>
      </div>
 
-     <div class="p-6 shrink-0 border-t border-[var(--border)] flex justify-between items-center bg-[var(--bg-input)] rounded-b-2xl">
-      <div class="flex items-center gap-2 shrink-0">
-       <span class="text-sm font-medium" style="color: var(--text-muted)">Estimasi Poin:</span>
-       <span class="font-bold text-lg" style="color: var(--text-heading)">{{ calculatedPoints }}</span>
+     <div class="p-5 lg:p-6 shrink-0 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 bg-[var(--bg-input)] rounded-b-none lg:rounded-b-2xl">
+      <div class="flex items-center justify-between w-full sm:w-auto shrink-0 bg-[var(--bg-card)] sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none border sm:border-none border-[var(--border-light)]">
+       <span class="text-sm font-medium" style="color: var(--text-muted)">Total Estimasi Poin:</span>
+       <span class="font-black text-xl lg:text-lg text-[var(--color-accent)] sm:ml-2">{{ calculatedPoints }}</span>
       </div>
-      <div class="flex justify-end gap-3">
-       <button @click="showModal = false" class="px-5 py-2 rounded-lg text-sm font-medium cursor-pointer" style="color: var(--text-body); border: 1px solid var(--border)">Batal</button>
-       <button @click="saveData" :disabled="formLoading" class="flex items-center gap-2 px-5 py-2 rounded-lg bg-accent text-sm font-bold cursor-pointer active:scale-95 disabled:opacity-50" style="color: var(--text-btn)">
+      <div class="flex gap-3 w-full sm:w-auto">
+       <button @click="showModal = false" class="flex-1 sm:flex-none px-5 py-3 lg:py-2 rounded-xl text-[0.95rem] lg:text-sm font-bold cursor-pointer bg-[var(--bg-card)] hover:bg-[var(--bg-input)] transition-colors" style="color: var(--text-body); border: 1px solid var(--border)">Batal</button>
+       <button @click="saveData" :disabled="formLoading" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 lg:py-2 rounded-xl bg-accent text-[0.95rem] lg:text-sm font-bold cursor-pointer active:scale-95 disabled:opacity-50 shadow-[0_5px_15px_var(--color-accent-soft)]" style="color: var(--text-btn)">
         <span v-if="formLoading" class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-        {{ editingData ? 'Simpan' : 'Submit' }}
+        {{ editingData ? 'Simpan Perubahan' : 'Submit Kegiatan' }}
        </button>
       </div>
      </div>
     </div>
    </div>
   </Transition>
+  </Teleport>
 
  </div>
 </template>
@@ -195,7 +252,7 @@ import AsatidzLayout from '../../../Layouts/AsatidzLayout.vue'
 
 defineOptions({ layout: AsatidzLayout })
 
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import VueMultiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.css'
 import { useKegiatanAsatidzStore } from '../../../stores/kegiatanAsatidz'
@@ -227,6 +284,14 @@ const masterKegiatanOptions = computed(() => {
  }))
 })
 
+function getAvailableOptions(currentIndex) {
+ const selectedIds = form.value.details
+  .map((d, idx) => (idx !== currentIndex && d.masterKegiatanOption) ? d.masterKegiatanOption.id : null)
+  .filter(id => id !== null)
+ 
+ return masterKegiatanOptions.value.filter(opt => !selectedIds.includes(opt.id))
+}
+
 async function fetchMasterKegiatans() {
  try {
   const { data } = await api.get('/master-kegiatan', { params: { per_page: 100 } })
@@ -243,6 +308,44 @@ const editingData = ref(null)
 const form = ref({ tanggal_kegiatan: '', details: [] })
 const formError = ref('')
 const formLoading = ref(false)
+
+// ── Touch Drag to Close ──
+const touchStartY = ref(0)
+const currentY = ref(0)
+const isDragging = ref(false)
+const scrollContainer = ref(null)
+
+function onTouchStart(e) {
+ // Hanya jalankan drag jika pengguna menyentuh area diluar scroll atau jika scroll sedang di posisi paling atas
+ if (scrollContainer.value && scrollContainer.value.contains(e.target)) {
+  if (scrollContainer.value.scrollTop > 0) return
+ }
+ touchStartY.value = e.touches[0].clientY
+ isDragging.value = true
+}
+
+function onTouchMove(e) {
+ if (!isDragging.value) return
+ const y = e.touches[0].clientY
+ const deltaY = y - touchStartY.value
+ 
+ if (deltaY > 0) {
+  currentY.value = deltaY
+ } else {
+  currentY.value = 0
+ }
+}
+
+function onTouchEnd() {
+ if (!isDragging.value) return
+ isDragging.value = false
+ if (currentY.value > 120) {
+  showModal.value = false
+  setTimeout(() => { currentY.value = 0 }, 300)
+ } else {
+  currentY.value = 0
+ }
+}
 
 const calculatedPoints = computed(() => {
  let total = 0
@@ -268,9 +371,16 @@ function loadData() {
  })
 }
 
+const isMounted = ref(false)
 onMounted(() => {
+ isMounted.value = true
  loadData()
  fetchMasterKegiatans()
+ window.addEventListener('open-input-kegiatan', openCreateModal)
+})
+
+onUnmounted(() => {
+ window.removeEventListener('open-input-kegiatan', openCreateModal)
 })
 
 // Watchers
@@ -433,7 +543,15 @@ function formatDate(dateStr) {
 .page-btn-active { background: var(--color-accent); color: var(--text-btn); box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
 
 /* ═══ Modal ═══ */
-.modal-card { background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.modal-card { background: var(--bg-card); border: 1px solid var(--border); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s; }
+
+.modal-overlay-enter-active, .modal-overlay-leave-active { transition: opacity 0.3s ease; }
+.modal-overlay-enter-from, .modal-overlay-leave-to { opacity: 0; }
+
+@media (max-width: 1023px) {
+ .modal-overlay-enter-from .modal-card, .modal-overlay-leave-to .modal-card { transform: translateY(100%); }
+}
+@media (min-width: 1024px) {
+ .modal-overlay-enter-from .modal-card, .modal-overlay-leave-to .modal-card { transform: translateY(20px) scale(0.95); opacity: 0; }
+}
 </style>

@@ -6,7 +6,7 @@
     <p class="text-muted text-sm font-medium leading-normal whitespace-nowrap">Panel Asatidz</p>
    </Link>
    <Link v-if="collapsed" href="/" class="brand-icon-link">
-    <span class="material-symbols-outlined text-accent text-[28px]">school</span>
+    <img src="/img/logo.png" alt="Logo" class="w-8 h-8 object-contain" />
    </Link>
    <button @click="$emit('close-sidebar')" class="close-btn p-1.5 rounded-lg transition-colors cursor-pointer lg:hidden">
     <span class="material-symbols-outlined text-[22px]">close</span>
@@ -68,6 +68,12 @@ const navSections = [
   label: 'Kegiatanku',
   items: [
    { icon: 'edit_document', label: 'Input Kegiatan', route: '/asatidz/kegiatan-asatidz' },
+  ],
+ },
+ {
+  label: 'Pengaturan',
+  items: [
+   { icon: 'manage_accounts', label: 'Profil Saya', route: '/asatidz/profil-saya' },
   ],
  }
 ]

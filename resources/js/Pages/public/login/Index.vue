@@ -1,4 +1,5 @@
 <template>
+ <Head title="Login" />
  <main class="login-page min-h-screen" :data-theme="resolvedTheme">
   <button
    class="login-theme-toggle"
@@ -15,8 +16,8 @@
     <div class="w-full max-w-[460px]">
      <div class="mb-8 flex items-center justify-between gap-4 lg:hidden">
       <Link href="/" class="flex items-center gap-3">
-       <span class="login-mobile-logo-icon flex size-10 items-center justify-center rounded-lg">
-        <span class="material-symbols-outlined text-[22px]">school</span>
+       <span class="login-mobile-logo-icon flex size-10 items-center justify-center rounded-lg overflow-hidden p-1.5">
+        <img src="/img/logo.png" alt="Logo" class="w-full h-full object-contain" />
        </span>
        <span class="login-mobile-brand text-lg font-black">Asatidz </span>
       </Link>
@@ -136,7 +137,7 @@
 
 <script setup>
 import { nextTick, onMounted, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, Head } from '@inertiajs/vue3'
 import api from '../../../axios'
 import { useAuthStore } from '../../../stores/auth'
 import { backendAssetUrl } from '../../../utils/asset'

@@ -6,8 +6,8 @@
    <div class="footer-main">
     <div class="footer-brand">
      <Link href="/" class="footer-logo">
-      <span class="footer-logo-icon">
-       <span class="material-symbols-outlined text-[26px]">auto_stories</span>
+      <span class="footer-logo-icon overflow-hidden p-1.5">
+       <img src="/img/logo.png" alt="Logo" class="w-full h-full object-contain" />
       </span>
       <span>
        <span class="block text-xl font-black text-white">{{ footer.brand_title }}</span>
