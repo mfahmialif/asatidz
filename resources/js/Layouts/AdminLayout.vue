@@ -11,7 +11,7 @@
 
   <!-- ═══════ SIDEBAR + TOGGLE (vertical only) ═══════ -->
   <Transition name="sidebar-slide">
-   <div v-if="layoutMode === 'vertical'" class="hidden lg:block relative group/sidebar shrink-0 transition-all duration-300"
+   <div v-if="layoutMode === 'vertical'" class="admin-sidebar-wrapper hidden lg:block relative z-[60] group/sidebar shrink-0 transition-all duration-300"
       :style="{ width: sidebarCollapsed ? '72px' : '256px' }">
     <AdminSidebar :collapsed="sidebarCollapsed"
      class="h-full"
@@ -29,6 +29,12 @@
 
   <!-- Mobile sidebar (always vertical) -->
   <AdminSidebar :collapsed="false"
+   :nav-items="[
+    { label: 'Data Asatidz', route: '/administrator/asatidz', icon: 'person_search' },
+    { label: 'Kegiatan Asatidz', route: '/administrator/kegiatan-asatidz', icon: 'edit_document' },
+    { label: 'Laporan & Rekap', route: '/administrator/laporan', icon: 'summarize' },
+    { label: 'Master Kegiatan', route: '/administrator/master-kegiatan', icon: 'list_alt' }
+   ]"
    :class="[
     'sidebar-mobile fixed z-40 lg:hidden transition-transform duration-300',
     sidebarOpen ? 'translate-x-0' : '-translate-x-full'

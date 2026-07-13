@@ -11,9 +11,12 @@
      Login
     </Link>
 
-    <div class="mb-8">
-     <p class="auth-eyebrow text-sm font-bold uppercase tracking-[0.2em]">Daftar Email</p>
-     <h1 class="auth-title mt-3 text-3xl font-black tracking-tight">Buat Akun</h1>
+    <div class="mb-8 text-center">
+     <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-500/10">
+      <span class="text-2xl font-serif text-sky-600 dark:text-sky-400">﷽</span>
+     </div>
+     <h1 class="auth-title text-3xl font-black tracking-tight">Buat Akun</h1>
+     <p class="auth-muted mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">Lengkapi data untuk mendaftar</p>
     </div>
 
     <form class="flex flex-col gap-5" @submit.prevent="handleRegister">
@@ -145,8 +148,16 @@ async function handleRegister() {
  }
 }
 
-onMounted(() => {
+onMounted(async () => {
  initTheme()
+ try {
+  const { data } = await api.get('/settings/login', { skipAuthRedirect: true })
+  if (data.enable_registration === false) {
+   router.visit('/login')
+  }
+ } catch (e) {
+  // 
+ }
 })
 </script>
 

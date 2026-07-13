@@ -26,7 +26,7 @@
   <div class="flex-1 min-h-0">
    <simplebar class="h-full" :auto-hide="true">
     <nav class="flex flex-col gap-1 pr-1">
-     <template v-for="section in navSections" :key="section.label">
+     <template v-for="section in filteredNavSections" :key="section.label">
       <div v-if="section.label" class="section-heading mt-5 mb-1 px-3" :class="collapsed ? 'is-collapsed' : ''">
        <p v-if="!collapsed" class="text-xs font-bold uppercase tracking-wider text-muted">{{ section.label }}</p>
       </div>
@@ -44,17 +44,15 @@
        <span class="sidebar-label text-base leading-normal">{{ item.label }}</span>
       </Link>
      </template>
+     
+     <button @click="handleLogout"
+         class="flex items-center gap-4 px-4 py-3 rounded-lg transition-colors sidebar-link nav-item text-body font-semibold cursor-pointer w-full text-left mt-2"
+         :title="collapsed ? 'Logout' : ''">
+      <span class="material-symbols-outlined text-[26px] shrink-0">logout</span>
+      <span class="sidebar-label text-base leading-normal" v-if="!collapsed">Logout</span>
+     </button>
     </nav>
    </simplebar>
-  </div>
-
-  <div class="pt-4 shrink-0">
-   <button @click="handleLogout"
-       class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-accent text-btn-text font-bold transition-colors hover:bg-accent/90 w-full shadow-[0_0_15px_rgba(37, 99, 235,0.3)] cursor-pointer active:scale-95"
-       :title="collapsed ? 'Logout' : ''">
-    <span class="material-symbols-outlined text-[20px] shrink-0">logout</span>
-    <span v-if="!collapsed">Logout</span>
-   </button>
   </div>
  </aside>
 </template>
@@ -74,6 +72,8 @@ const authStore = useAuthStore()
 
 
 
+import { computed } from 'vue'
+
 const navSections = [
  {
   label: '',
@@ -82,22 +82,59 @@ const navSections = [
   ],
  },
  {
-  label: 'Manajemen',
+  label: 'Master',
   items: [
    { icon: 'group', label: 'User', route: '/administrator/manajemen-user' },
    { icon: 'admin_panel_settings', label: 'Role', route: '/administrator/manajemen-role' },
+   { icon: 'list_alt', label: 'Kegiatan', route: '/administrator/master-kegiatan' },
+  ],
+ },
+ {
+  label: 'Asatidz',
+  items: [
+   { icon: 'person_search', label: 'Data Asatidz', route: '/administrator/asatidz' },
+   { icon: 'edit_document', label: 'Kegiatan Asatidz', route: '/administrator/kegiatan-asatidz' },
+   { icon: 'summarize', label: 'Laporan', route: '/administrator/laporan' },
   ],
  },
  {
   label: 'Website',
   items: [
-   { icon: 'menu', label: 'Menu', route: '/administrator/menus' },
    { icon: 'person', label: 'Profile', route: '/administrator/profile' },
    { icon: 'history', label: 'Log', route: '/administrator/logs' },
    { icon: 'settings', label: 'Pengaturan', route: '/administrator/pengaturan' },
   ],
  },
 ]
+
+const filteredNavSections = computed(() => {
+ const role = authStore.user?.role?.name
+ 
+ if (role === 'Asatidz') {
+  return [
+   {
+    label: '',
+    items: [
+     { icon: 'dashboard', label: 'Dashboard', route: '/administrator/dashboard' },
+    ],
+   },
+   {
+    label: 'Kegiatanku',
+    items: [
+     { icon: 'edit_document', label: 'Input Kegiatan', route: '/administrator/kegiatan-asatidz' },
+    ],
+   },
+   {
+    label: 'Akun',
+    items: [
+     { icon: 'person', label: 'Profile', route: '/administrator/profile' },
+    ],
+   }
+  ]
+ }
+ 
+ return navSections
+})
 
 function isActiveRoute(itemRoute) {
  const path = page.url.split('?')[0];

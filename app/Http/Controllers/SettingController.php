@@ -50,10 +50,6 @@ class SettingController extends Controller
   return response()->json($this->generalPayload());
  }
 
- public function landing()
- {
-  return response()->json($this->landingPayload());
- }
 
  public function login()
  {
@@ -64,6 +60,7 @@ class SettingController extends Controller
  {
   $data = $request->validate([
    'login_image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:4096',
+   'enable_registration' => 'required|boolean',
   ]);
 
   if ($request->hasFile('login_image')) {
@@ -72,51 +69,11 @@ class SettingController extends Controller
    AppSetting::setValue('login_image_url', Storage::disk('public')->url($path));
   }
 
+  AppSetting::setValue('enable_registration', $data['enable_registration'], 'boolean');
+
   return response()->json($this->loginPayload());
  }
 
- public function updateLanding(Request $request)
- {
-  $data = $request->validate([
-   'content' => 'required|string',
-   'hero_image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:4096',
-   'supporter_logos' => 'nullable|array',
-   'supporter_logos.*' => 'nullable|file|mimes:png,jpg,jpeg,webp,svg|max:2048',
-  ]);
-
-  $content = json_decode($data['content'], true);
-
-  if (! is_array($content)) {
-   return response()->json([
-    'message' => 'Format pengaturan landing tidak valid.',
-    'errors' => ['content' => ['Format pengaturan landing tidak valid.']],
-   ], 422);
-  }
-
-  $current = $this->landingContent();
-  $content = array_replace_recursive($current, $content);
-
-  if ($request->hasFile('hero_image')) {
-   $path = $request->file('hero_image')->store('settings', 'public');
-   $content['hero']['image_path'] = $path;
-   $content['hero']['image_url'] = Storage::disk('public')->url($path);
-  }
-
-  foreach ($request->file('supporter_logos', []) as $index => $file) {
-   if (! isset($content['supporters']['items'][$index])) {
-    continue;
-   }
-
-   $path = $file->store('settings/supporters', 'public');
-   $content['supporters']['items'][$index]['display_type'] = 'logo';
-   $content['supporters']['items'][$index]['logo_path'] = $path;
-   $content['supporters']['items'][$index]['logo_url'] = Storage::disk('public')->url($path);
-  }
-
-  AppSetting::setValue('landing_content', json_encode($content, JSON_UNESCAPED_UNICODE));
-
-  return response()->json($this->landingPayload());
- }
 
  public function email()
  {
@@ -221,195 +178,20 @@ class SettingController extends Controller
   ];
  }
 
- private function landingPayload(): array
- {
-  return $this->landingContent();
- }
+ //
 
  private function loginPayload(): array
  {
   return [
    'image_path' => AppSetting::getValue('login_image_path', ''),
    'image_url' => AppSetting::getValue('login_image_url', ''),
+   'enable_registration' => AppSetting::getValue('enable_registration', true),
   ];
  }
 
- private function landingContent(): array
- {
-  $stored = AppSetting::getValue('landing_content');
-  $content = is_string($stored) ? json_decode($stored, true) : null;
-  $hasStoredContent = is_array($content);
-  $content = is_array($content) ? $content : [];
+ //
 
-  $legacyHero = $hasStoredContent ? [] : [
-   'image_path' => AppSetting::getValue('hero_image_path', ''),
-   'image_url' => AppSetting::getValue('hero_image_url', ''),
-   'image_alt' => AppSetting::getValue('hero_image_alt', 'Kegiatan Asatidz'),
-   'label' => AppSetting::getValue('hero_label', ''),
-   'title' => AppSetting::getValue('hero_title', ''),
-  ];
-
-  return array_replace_recursive($this->defaultLandingContent(), $content, [
-   'hero' => array_filter($legacyHero, fn ($value) => $value !== null && $value !== ''),
-  ]);
- }
-
- private function defaultLandingContent(): array
- {
-  return [
-   'hero' => [
-    'image_path' => '',
-    'image_url' => '',
-    'image_alt' => 'Kegiatan Asatidz',
-    'eyebrow' => 'FAKULTAS',
-    'main_title' => 'Asatidz',
-    'description' => 'Website resmi Asatidz untuk informasi akademik, berita, kegiatan mahasiswa, dan layanan komunikasi prodi.',
-    'primary_label' => 'Lihat Akademik',
-    'primary_href' => '#services',
-    'secondary_label' => 'Kegiatan Asatidz',
-    'secondary_href' => '#flow',
-    'label' => '',
-    'title' => '',
-   ],
-   'visionMission' => [
-    'kicker' => 'Visi Misi',
-    'title' => 'Arah pengembangan Asatidz.',
-    'vision_title' => 'Visi',
-    'vision_body' => 'Menjadi prodi yang unggul dalam pengembangan keasatidzahan, riset pembelajaran, linguistik terapan, dan tradisi keilmuan berbasis nilai keislaman serta kebutuhan masyarakat.',
-    'mission_title' => 'Misi',
-    'items' => [
-     ['icon' => 'menu_book', 'title' => 'Kajian Asatidz', 'body' => 'Menyelenggarakan pembelajaran keasatidzahan, kajian bahasa dan sastra, serta budaya dan keislaman yang kuat secara teori dan praktik.'],
-     ['icon' => 'science', 'title' => 'Riset Asatidz', 'body' => 'Mengembangkan penelitian keasatidzahan, kajian bahasa dan sastra, budaya dan keislaman, dan turats yang relevan dengan kebutuhan akademik.'],
-     ['icon' => 'groups', 'title' => 'Pengabdian dan Kolaborasi', 'body' => 'Membangun jejaring akademik serta menerapkan keasatidzahan dalam kegiatan masyarakat.'],
-    ],
-   ],
-   'services' => [
-    'kicker' => 'Akademik',
-    'title' => 'Informasi dan layanan Asatidz.',
-    'items' => [
-     ['icon' => 'school', 'title' => 'Informasi Akademik', 'body' => 'Akses informasi kurikulum, kegiatan kuliah, dan agenda akademik prodi.', 'href' => '#services'],
-     ['icon' => 'translate', 'title' => 'Kajian Asatidz', 'body' => 'Pembelajaran keasatidzahan, kajian bahasa dan sastra, metodologi riset, dan tradisi keilmuan Islam.', 'href' => '#about'],
-     ['icon' => 'groups', 'title' => 'Kegiatan Mahasiswa', 'body' => 'Ikuti kabar seminar, diskusi ilmiah, komunitas, dan aktivitas kemahasiswaan.', 'href' => '#flow'],
-     ['icon' => 'support_agent', 'title' => 'Layanan Prodi', 'body' => 'Hubungi pengelola prodi untuk kebutuhan administrasi dan informasi studi.', 'href' => '#contact'],
-    ],
-   ],
-   'supporters' => [
-    'kicker' => 'Supporter',
-    'title' => 'Ekosistem yang mendukung gerakan literasi kampus.',
-    'items' => [
-     ['display_type' => 'icon', 'icon' => 'school', 'logo_path' => '', 'logo_url' => '', 'name' => ''],
-     ['display_type' => 'icon', 'icon' => 'translate', 'logo_path' => '', 'logo_url' => '', 'name' => 'Asatidz'],
-     ['display_type' => 'icon', 'icon' => 'diversity_3', 'logo_path' => '', 'logo_url' => '', 'name' => 'Mahasiswa'],
-     ['display_type' => 'icon', 'icon' => 'science', 'logo_path' => '', 'logo_url' => '', 'name' => 'Riset Prodi'],
-     ['display_type' => 'icon', 'icon' => 'history_edu', 'logo_path' => '', 'logo_url' => '', 'name' => 'Kajian Turats'],
-     ['display_type' => 'icon', 'icon' => 'public', 'logo_path' => '', 'logo_url' => '', 'name' => 'Budaya dan keislaman'],
-    ],
-   ],
-   'news' => [
-    'kicker' => 'Asatidz Update',
-    'title' => 'Berita, kegiatan, dan informasi prodi.',
-    'description' => 'Kanal update dipakai untuk mengabarkan agenda akademik, kegiatan mahasiswa, informasi layanan, dan pengumuman prodi.',
-    'button_label' => 'Semua News',
-    'item_count' => 6,
-    'fallback_items' => [
-     ['day' => '12', 'month' => 'Mei', 'category' => 'Akademik', 'title' => 'Agenda perkuliahan dan kegiatan Asatidz semester ini', 'body' => 'Informasi akademik terbaru disiapkan untuk mahasiswa, dosen, dan calon mahasiswa.', 'image' => '/img/news/news1.jpg'],
-     ['day' => '08', 'month' => 'Mei', 'category' => 'Mahasiswa', 'title' => 'Kegiatan diskusi keasatidzahan dibuka untuk mahasiswa', 'body' => 'Program ini menjadi ruang penguatan wawasan keasatidzahan, kajian bahasa dan sastra, serta budaya dan keislaman.', 'image' => '/img/news/news2.jpg'],
-     ['day' => '01', 'month' => 'Mei', 'category' => 'Prodi', 'title' => 'Profil Asatidz diperbarui untuk akses publik', 'body' => 'Website ini menyajikan informasi prodi, berita, layanan, dan kontak resmi.', 'image' => '/img/news/news3.jpg'],
-    ],
-   ],
-   'about' => [
-    'kicker' => 'Tentang Kami',
-    'title' => 'Mengembangkan kajian keasatidzahan, kajian bahasa dan sastra, serta budaya dan keislaman.',
-    'body' => 'Asatidz berfokus pada kajian keasatidzahan, analisis sumber, pemahaman budaya, dan penguatan tradisi keilmuan. Website ini menjadi kanal informasi akademik, berita, kegiatan, dan layanan prodi.',
-    'stats' => [
-     ['value' => '4', 'label' => 'Fokus Kajian'],
-     ['value' => '30+', 'label' => 'Kegiatan Akademik'],
-     ['value' => '100+', 'label' => 'Mahasiswa Aktif'],
-    ],
-   ],
-   'publishCta' => [
-    'kicker' => 'Asatidz',
-    'title' => 'Temukan informasi akademik dan kegiatan terbaru Asatidz.',
-    'button_label' => 'Hubungi Asatidz',
-    'button_href' => '#contact',
-   ],
-   'strengths' => [
-    'kicker' => 'Kenapa Asatidz?',
-    'title' => 'Ruang akademik untuk keasatidzahan, riset pembelajaran, dan tradisi keilmuan.',
-    'items' => [
-     ['icon' => 'history_edu', 'title' => 'Kajian Pendidikan', 'body' => 'Mahasiswa diarahkan mengembangkan riset keasatidzahan klasik, modern, dan kontemporer.'],
-     ['icon' => 'record_voice_over', 'title' => 'Kompetensi Riset', 'body' => 'Pembelajaran menekankan metodologi riset, publikasi akademik, dan analisis pembelajaran Asatidz.'],
-     ['icon' => 'history_edu', 'title' => 'Tradisi Keilmuan', 'body' => 'Kajian prodi terhubung dengan turats, budaya dan keislaman, dan khazanah keilmuan pesantren.'],
-     ['icon' => 'forum', 'title' => 'Diskusi Akademik', 'body' => 'Kegiatan kelas dan forum ilmiah mendorong mahasiswa berpikir kritis dan komunikatif.'],
-     ['icon' => 'public', 'title' => 'Wawasan Budaya', 'body' => 'Mahasiswa mempelajari konteks budaya dan keislaman, pedagogi, dan pemikiran keislaman secara luas.'],
-     ['icon' => 'handshake', 'title' => 'Kolaborasi', 'body' => 'Prodi terbuka untuk kerja sama akademik, seminar, dan pengembangan kompetensi mahasiswa.'],
-    ],
-   ],
-   'flow' => [
-    'kicker' => 'Kegiatan Prodi',
-    'title' => 'Pengalaman belajar yang terarah dan aktif.',
-    'items' => [
-     ['no' => '01', 'title' => 'Pembelajaran', 'body' => 'Mahasiswa mengikuti perkuliahan inti keasatidzahan, kajian bahasa dan sastra, serta budaya dan keislaman.'],
-     ['no' => '02', 'title' => 'Diskusi Ilmiah', 'body' => 'Forum akademik memperkuat analisis teks, riset, dan komunikasi.'],
-     ['no' => '03', 'title' => 'Praktik Riset', 'body' => 'Kegiatan praktik membantu mahasiswa mengolah sumber dan data penelitian keasatidzahan secara aktif.'],
-     ['no' => '04', 'title' => 'Riset', 'body' => 'Mahasiswa diarahkan menyusun kajian dan karya ilmiah berbasis bidang prodi.'],
-     ['no' => '05', 'title' => 'Pengabdian', 'body' => 'Kompetensi diterapkan dalam kegiatan masyarakat dan jejaring akademik.'],
-    ],
-   ],
-   'testimonials' => [
-    'kicker' => 'Testimoni',
-    'title' => 'Cerita sivitas akademika Asatidz.',
-    'items' => [
-     ['quote' => 'Pembelajaran Asatidz membuka cara baru mengembangkan riset Asatidz, teks, dan pembelajaran secara mendalam.', 'name' => 'Dr. Ahmad Fikri', 'role' => 'Dosen'],
-     ['quote' => 'Kegiatan diskusi dan praktik riset membantu mahasiswa lebih percaya diri mengembangkan kajian keasatidzahan.', 'name' => 'Ust. Zainal Abidin', 'role' => 'Pengajar'],
-     ['quote' => 'Website prodi memudahkan akses informasi akademik, berita, dan layanan komunikasi.', 'name' => 'Laila Rahmah', 'role' => 'Mahasiswa'],
-    ],
-   ],
-   'contact' => [
-    'kicker' => 'Contact',
-    'title' => 'Hubungi Asatidz.',
-    'body' => 'Sampaikan kebutuhan informasi akademik, kegiatan mahasiswa, kerja sama, dan layanan komunikasi prodi.',
-    'email' => 'asatidz@asatidz.id',
-    'phone' => '+62 812 0000 0000',
-    'address' => 'Kompleks , Pasuruan',
-    'login_label' => 'Admin Login',
-   ],
-   'footer' => [
-    'brand_title' => 'Asatidz',
-    'brand_subtitle' => 'Prodi',
-    'description' => 'Website Asatidz untuk informasi akademik, berita, kegiatan, dan layanan komunikasi prodi.',
-    'primary_label' => 'Lihat News',
-    'primary_href' => '/news',
-    'secondary_label' => 'Kontak Prodi',
-    'secondary_href' => '/contact',
-    'navigation_title' => 'Navigasi',
-    'navigation' => [
-     ['label' => 'Home', 'href' => '/'],
-     ['label' => 'Profil', 'href' => '/#about'],
-     ['label' => 'Akademik', 'href' => '/#services'],
-     ['label' => 'News', 'href' => '/news'],
-     ['label' => 'Contact', 'href' => '/contact'],
-    ],
-    'services_title' => 'Layanan',
-    'services' => [
-     ['label' => 'Informasi Akademik', 'href' => '/#services'],
-     ['label' => 'Kegiatan Mahasiswa', 'href' => '/#flow'],
-     ['label' => 'Berita Prodi', 'href' => '/news'],
-     ['label' => 'Kontak Prodi', 'href' => '/contact'],
-    ],
-    'contact_title' => 'Kontak',
-    'email' => 'asatidz@asatidz.id',
-    'phone' => '+62 812 0000 0000',
-    'whatsapp' => '6281200000000',
-    'address' => 'Pasuruan, Jawa Timur',
-    'maps_href' => 'https://maps.app.goo.gl/pNNU4dnCtuu7y4Qk6',
-    'copyright' => 'Asatidz. All rights reserved.',
-    'admin_label' => 'Admin Login',
-    'admin_href' => '/login',
-    'maps_label' => 'Maps',
-   ],
-  ];
- }
+ //
 
  private function dashboardRoles()
  {

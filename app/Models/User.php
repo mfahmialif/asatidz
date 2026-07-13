@@ -16,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
  /** @use HasFactory<UserFactory> */
- use HasFactory, Notifiable;
+ use HasFactory, Notifiable, \App\Traits\LogsActivity;
 
  /**
   * Get the attributes that should be cast.
@@ -46,5 +46,10 @@ class User extends Authenticatable
  public function createdNews(): HasMany
  {
   return $this->hasMany(News::class, 'created_by');
+ }
+
+ public function asatidz(): \Illuminate\Database\Eloquent\Relations\HasOne
+ {
+  return $this->hasOne(Asatidz::class);
  }
 }

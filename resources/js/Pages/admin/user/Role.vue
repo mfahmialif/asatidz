@@ -10,7 +10,7 @@
    </button>
   </div>
   <!-- ═══ FILTERS BAR ═══ -->
-  <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+  <div class="flex flex-col lg:flex-row lg:flex-wrap lg:justify-between lg:items-center gap-4">
    <!-- Search -->
    <div class="relative w-full lg:w-[400px]">
     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-accent text-[20px] z-10">search</span>
@@ -21,7 +21,7 @@
    <!-- Filter Controls -->
    <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 lg:gap-4">
     <!-- Status Filter -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
      <span class="text-sm font-medium shrink-0" style="color: var(--text-body)">Status:</span>
      <VueMultiselect
       v-model="filterStatus"
@@ -38,7 +38,7 @@
      />
     </div>
     <!-- Entries per page -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
      <span class="text-sm font-medium shrink-0" style="color: var(--text-body)">Show:</span>
      <VueMultiselect
       v-model="perPage"

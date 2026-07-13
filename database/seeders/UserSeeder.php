@@ -4,74 +4,68 @@ namespace Database\Seeders;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Asatidz;
+use App\Models\MasterKegiatan;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
- public function run(): void
- {
-  $admin = Role::updateOrCreate(['name' => 'Admin'], [
-   'description' => 'Full access untuk mengelola website Prodi Doktor Pendidikan Bahasa Arab .',
-   'status' => 'Active',
-  ]);
+    public function run(): void
+    {
+        $adminRole = Role::updateOrCreate(['name' => 'Admin'], [
+            'description' => 'Akses penuh ke seluruh sistem Asatidz.',
+            'status' => 'Active',
+        ]);
 
-  $operator = Role::updateOrCreate(['name' => 'Operator'], [
-   'description' => 'Dapat mengelola dan menerbitkan konten website.',
-   'status' => 'Active',
-  ]);
+        $asatidzRole = Role::updateOrCreate(['name' => 'Asatidz'], [
+            'description' => 'Akses panel Asatidz untuk input kegiatan.',
+            'status' => 'Active',
+        ]);
 
-  $penulisRole = Role::updateOrCreate(['name' => 'Penulis'], [
-   'description' => 'Akses dashboard penulis untuk mengelola artikel berita miliknya sendiri.',
-   'status' => 'Active',
-  ]);
+        $adminUser = User::updateOrCreate(['username' => 'admin'], [
+            'name' => 'Administrator',
+            'email' => 'admin@asatidz.local',
+            'password' => bcrypt('password'),
+            'role_id' => $adminRole->id,
+            'status' => 'Active',
+            'last_active_at' => now(),
+        ]);
 
-  $kepalaPenulisRole = Role::updateOrCreate(['name' => 'Kepala Penulis'], [
-   'description' => 'Akses dashboard kepala penulis untuk mengelola artikel dan akun penulis.',
-   'status' => 'Active',
-  ]);
+        $asatidzUser = User::updateOrCreate(['username' => 'asatidz'], [
+            'name' => 'Fulan Asatidz',
+            'email' => 'asatidz@asatidz.local',
+            'password' => bcrypt('password'),
+            'role_id' => $asatidzRole->id,
+            'status' => 'Active',
+            'last_active_at' => now(),
+        ]);
 
-  User::updateOrCreate(['username' => 'admin'], [
-   'name' => 'Administrator',
-   'email' => 'admin@spi.local',
-   'password' => bcrypt('password'),
-   'role_id' => $admin->id,
-   'status' => 'Active',
-   'last_active_at' => now(),
-  ]);
+        Asatidz::updateOrCreate(['user_id' => $asatidzUser->id], [
+            'nama' => 'Fulan Asatidz',
+            'no_telepon' => '081234567890',
+            'alamat' => 'Asrama Putra',
+        ]);
 
-  User::updateOrCreate(['username' => 'operator'], [
-   'name' => 'Operator Konten',
-   'email' => 'operator@spi.local',
-   'password' => bcrypt('password'),
-   'role_id' => $operator->id,
-   'status' => 'Active',
-   'last_active_at' => now()->subHours(2),
-  ]);
+        // Seed Master Kegiatan
+        $kegiatans = [
+            ['nama' => 'Oprak-oprak tidur', 'poin' => 5],
+            ['nama' => 'Membangunkan qiyamul lail', 'poin' => 15],
+            ['nama' => 'Patroli malam', 'poin' => 10],
+            ['nama' => 'Mengawasi tandzif pagi', 'poin' => 5],
+            ['nama' => 'Oprak jamaah', 'poin' => 5],
+        ];
 
-  User::updateOrCreate(['username' => 'penulis'], [
-   'name' => 'Penulis Berita',
-   'email' => 'penulis@spi.local',
-   'password' => bcrypt('password'),
-   'role_id' => $penulisRole->id,
-   'status' => 'Active',
-   'last_active_at' => now()->subMinutes(25),
-  ]);
+        foreach ($kegiatans as $k) {
+            MasterKegiatan::updateOrCreate(['nama' => $k['nama']], [
+                'poin' => $k['poin'],
+                'status' => 'Aktif',
+            ]);
+        }
 
-  User::updateOrCreate(['username' => 'kepala_penulis'], [
-   'name' => 'Kepala Penulis',
-   'email' => 'kepala.penulis@spi.local',
-   'password' => bcrypt('password'),
-   'role_id' => $kepalaPenulisRole->id,
-   'status' => 'Active',
-   'last_active_at' => now()->subMinutes(20),
-  ]);
-
-  $this->command?->newLine();
-  $this->command?->info('Login seed accounts:');
-  $this->command?->line('Admin   : username=admin   password=password');
-  $this->command?->line('Operator  : username=operator  password=password');
-  $this->command?->line('Penulis  : username=penulis  password=password');
-  $this->command?->line('Kepala Penulis: username=kepala_penulis password=password');
-  $this->command?->newLine();
- }
+        $this->command?->newLine();
+        $this->command?->info('Login seed accounts:');
+        $this->command?->line('Admin   : username=admin   password=password');
+        $this->command?->line('Asatidz : username=asatidz password=password');
+        $this->command?->newLine();
+    }
 }

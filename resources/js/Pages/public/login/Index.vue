@@ -9,41 +9,7 @@
    <span class="material-symbols-outlined text-[20px]">{{ resolvedTheme === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
   </button>
 
-  <div class="grid min-h-screen lg:grid-cols-[1.08fr_0.92fr]">
-   <section class="login-visual-panel relative hidden overflow-hidden lg:block">
-    <img :src="loginImageUrl" alt="Asatidz " class="absolute inset-0 h-full w-full object-cover" />
-    <div class="login-visual-overlay absolute inset-0"></div>
-    <div class="login-visual-gradient absolute inset-x-0 bottom-0 h-1/2"></div>
-
-    <div class="relative z-10 flex h-full flex-col justify-between p-12 xl:p-16">
-     <Link href="/" class="inline-flex w-fit items-center gap-3">
-      <span class="login-visual-logo-icon flex size-11 items-center justify-center rounded-lg">
-       <span class="material-symbols-outlined text-[24px]">school</span>
-      </span>
-      <span class="login-visual-brand text-xl font-black tracking-tight">Asatidz </span>
-     </Link>
-
-     <div class="max-w-2xl">
-      <p class="login-kicker mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold">
-       <span class="material-symbols-outlined text-[18px]">verified_user</span>
-       Portal Login
-      </p>
-      <h1 class="login-visual-title text-5xl font-black leading-[1.03] tracking-tight xl:text-7xl">
-       Kelola konten website prodi dengan rapi.
-      </h1>
-      <p class="login-visual-copy mt-6 max-w-xl text-lg leading-8">
-       Masuk untuk mengatur halaman, navigasi, pengaturan, dan manajemen pengguna dari satu dashboard.
-      </p>
-     </div>
-
-     <div class="grid max-w-xl grid-cols-3 gap-3">
-      <div v-for="item in highlights" :key="item.label" class="login-highlight rounded-lg p-4 backdrop-blur">
-       <span class="material-symbols-outlined">{{ item.icon }}</span>
-       <p class="mt-3 text-sm font-bold">{{ item.label }}</p>
-      </div>
-     </div>
-    </div>
-   </section>
+  <div class="min-h-screen">
 
    <section class="login-form-panel flex min-h-screen items-center justify-center px-5 py-8 sm:px-8">
     <div class="w-full max-w-[460px]">
@@ -57,9 +23,12 @@
      </div>
 
      <div class="login-card rounded-2xl p-6 shadow-2xl backdrop-blur sm:p-8">
-      <div class="mb-8">
-       <p class="login-eyebrow text-sm font-bold uppercase tracking-[0.2em]">Secure Login</p>
-       <h2 class="login-title mt-3 text-3xl font-black tracking-tight">Selamat Datang</h2>
+      <div class="mb-8 text-center">
+       <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-500/10">
+        <span class="text-2xl font-serif text-sky-600 dark:text-sky-400">﷽</span>
+       </div>
+       <h2 class="login-title text-3xl font-black tracking-tight">Assalamu'alaikum</h2>
+       <p class="login-muted mt-2 text-sm font-medium">Selamat datang, silakan masuk ke akun Anda.</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="flex flex-col gap-5">
@@ -112,7 +81,7 @@
         </Link>
        </div>
 
-       <div class="register-callout">
+       <div v-if="registrationEnabled" class="register-callout">
         <span class="material-symbols-outlined text-[19px]">person_add</span>
         <p>Belum punya akun?</p>
         <Link href="/register">Daftar dengan email</Link>
@@ -190,18 +159,11 @@ const googleConfig = ref({
 })
 const googleButtonRef = ref(null)
 const currentYear = new Date().getFullYear()
-const loginImageUrl = ref('/img/hero-bg.jpg')
+const registrationEnabled = ref(true)
 let googlePromptInitialized = false
 
-const highlights = [
- { icon: 'article', label: 'News' },
- { icon: 'edit_note', label: 'Editorial' },
- { icon: 'admin_panel_settings', label: 'Access' },
-]
-
 function redirectToDashboard(roleName) {
- if (roleName === 'Penulis') router.visit('/penulis/dashboard')
- else if (roleName === 'Kepala Penulis') router.visit('/kepala-penulis/dashboard')
+ if (roleName === 'Asatidz') router.visit('/asatidz/dashboard')
  else router.visit('/administrator/dashboard')
 }
 
@@ -250,9 +212,9 @@ async function loadGoogleConfig() {
 async function loadLoginSettings() {
  try {
   const { data } = await api.get('/settings/login', { skipAuthRedirect: true })
-  loginImageUrl.value = backendAssetUrl(data.image_path || data.image_url) || '/img/hero-bg.jpg'
+  registrationEnabled.value = data.enable_registration ?? true
  } catch {
-  loginImageUrl.value = '/img/hero-bg.jpg'
+  registrationEnabled.value = true
  }
 }
 

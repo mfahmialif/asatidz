@@ -1,0 +1,442 @@
+<template>
+ <div class="flex flex-col gap-6">
+
+  <!-- ═══ ACTION BAR ═══ -->
+  <div class="flex items-center justify-between">
+   <button v-if="authStore.user?.role?.name === 'Asatidz'" @click="openCreateModal" class="flex items-center gap-2 rounded-lg h-10 px-5 bg-accent text-btn-text font-bold transition-colors hover:bg-accent/90 shadow-[0_0_15px_rgba(37, 99, 235,0.3)] shrink-0 cursor-pointer active:scale-95"
+       style="color: var(--text-btn)">
+    <span class="material-symbols-outlined text-[20px]">add_box</span>
+    <span>Input Kegiatan</span>
+   </button>
+  </div>
+
+  <!-- ═══ FILTERS BAR ═══ -->
+  <div class="flex flex-col lg:flex-row lg:flex-wrap lg:justify-between lg:items-center gap-4">
+   <!-- Date Filter -->
+   <div class="relative w-full lg:w-[250px]">
+    <input v-model="filterDate"
+        class="filter-input w-full rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+        type="date" />
+   </div>
+   <!-- Filter Controls -->
+   <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 lg:gap-4">
+    <button v-if="filterDate" @click="clearFilter" class="text-sm font-medium hover:text-accent transition-colors cursor-pointer" style="color: var(--text-muted)">
+     Clear Filter
+    </button>
+    <!-- Entries per page -->
+    <div class="flex items-center gap-2 shrink-0">
+     <span class="text-sm font-medium shrink-0" style="color: var(--text-body)">Show:</span>
+     <VueMultiselect
+      v-model="perPage"
+      :options="perPageOptions"
+      :close-on-select="true"
+      :clear-on-select="false"
+      :searchable="true"
+      :allow-empty="false"
+      :show-labels="false"
+      label="name"
+      track-by="value"
+      placeholder="10"
+      class="w-[90px]"
+     />
+     <span class="text-sm font-medium shrink-0" style="color: var(--text-body)">entries</span>
+    </div>
+   </div>
+  </div>
+
+  <!-- ═══ TABLE ═══ -->
+  <div class="flex flex-col gap-4">
+   <div class="table-wrapper rounded-xl overflow-hidden shadow-2xl">
+    <div class="overflow-x-auto p-2">
+     <table class="w-full text-left border-collapse">
+      <thead>
+       <tr class="table-head">
+        <th class="px-6 py-4 text-sm font-semibold tracking-wide" style="color: var(--text-heading)">Tanggal</th>
+        <th v-if="authStore.user?.role?.name !== 'Asatidz'" class="px-6 py-4 text-sm font-semibold tracking-wide" style="color: var(--text-heading)">Asatidz</th>
+        <th class="px-6 py-4 text-sm font-semibold tracking-wide" style="color: var(--text-heading)">Daftar Kegiatan</th>
+        <th class="px-6 py-4 text-sm font-semibold tracking-wide" style="color: var(--text-heading)">Total Poin</th>
+        <th class="px-6 py-4 text-sm font-semibold tracking-wide text-right" style="color: var(--text-heading)" v-if="authStore.user?.role?.name === 'Asatidz'">Aksi</th>
+       </tr>
+      </thead>
+      <tbody class="table-body">
+       <tr v-if="store.loading" class="table-row-hover">
+        <td colspan="5" class="px-6 py-5 text-center text-sm" style="color: var(--text-muted)">Memuat data...</td>
+       </tr>
+       <tr v-else-if="!store.kegiatans.length" class="table-row-hover">
+        <td colspan="5" class="px-6 py-5 text-center text-sm" style="color: var(--text-muted)">Belum ada kegiatan.</td>
+       </tr>
+       <tr v-for="item in store.kegiatans" :key="item.id" class="table-row-hover">
+        <td class="px-6 py-5">
+         <span class="text-sm font-medium" style="color: var(--text-heading)">{{ formatDate(item.tanggal_kegiatan) }}</span>
+        </td>
+        <td v-if="authStore.user?.role?.name !== 'Asatidz'" class="px-6 py-5">
+         <span class="text-sm font-medium" style="color: var(--text-heading)">{{ item.asatidz?.nama || '-' }}</span>
+        </td>
+        <td class="px-6 py-5">
+         <div class="flex flex-col gap-1">
+          <div v-for="detail in item.details" :key="detail.id" class="text-sm" style="color: var(--text-muted)">
+           • {{ detail.master_kegiatan?.nama }} 
+           <span v-if="detail.keterangan" class="italic opacity-70">({{ detail.keterangan }})</span>
+          </div>
+         </div>
+        </td>
+        <td class="px-6 py-5">
+         <span class="admin-badge admin-badge--sky">{{ item.total_poin }}</span>
+        </td>
+        <td class="px-6 py-5 text-right" v-if="authStore.user?.role?.name === 'Asatidz'">
+         <div class="flex items-center justify-end gap-1">
+          <button @click="openEditModal(item)" class="action-btn p-2 rounded-lg transition-all duration-200" title="Edit">
+           <span class="material-symbols-outlined text-[20px]">edit</span>
+          </button>
+          <button @click="confirmDelete(item)" class="action-btn action-btn-delete p-2 rounded-lg transition-all duration-200" title="Delete">
+           <span class="material-symbols-outlined text-[20px]">delete</span>
+          </button>
+         </div>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-bar flex items-center justify-between px-6 py-4">
+     <span class="text-sm font-medium" style="color: var(--text-muted)">Menampilkan {{ store.pagination.from || 0 }} ke {{ store.pagination.to || 0 }} dari {{ store.pagination.total || 0 }} data</span>
+     <div class="flex items-center gap-1.5 ml-auto">
+      <button @click="goToPage(currentPage - 1)" class="page-btn p-2 rounded-lg flex items-center justify-center disabled:opacity-50 cursor-pointer" :disabled="currentPage <= 1">
+       <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+      </button>
+      <template v-for="p in pageNumbers" :key="p">
+       <span v-if="p === '...'" class="w-8 h-8 flex items-center justify-center text-sm" style="color: var(--text-muted)">...</span>
+       <button v-else @click="goToPage(p)" :class="p === currentPage ? 'page-btn-active w-8 h-8 rounded-full font-bold text-sm flex items-center justify-center' : 'page-btn w-8 h-8 rounded-full text-sm font-medium flex items-center justify-center cursor-pointer'">{{ p }}</button>
+      </template>
+      <button @click="goToPage(currentPage + 1)" class="page-btn p-2 rounded-lg flex items-center justify-center cursor-pointer" :disabled="currentPage >= store.pagination.lastPage">
+       <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+      </button>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <!-- ═══ MODAL ═══ -->
+  <Transition name="fade">
+   <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showModal = false">
+    <div class="modal-card w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl">
+     
+     <div class="p-6 shrink-0 border-b border-[var(--border)]">
+      <h3 class="text-lg font-bold" style="color: var(--text-heading)">{{ editingData ? 'Edit Kegiatan Harian' : 'Input Kegiatan Harian' }}</h3>
+     </div>
+
+     <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
+      <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-medium" style="color: var(--text-body)">Tanggal Kegiatan</label>
+       <input v-model="form.tanggal_kegiatan" type="date" class="filter-input w-full md:w-1/2 rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
+      </div>
+
+      <div class="flex flex-col gap-3">
+       <div class="flex items-center justify-between">
+        <label class="text-sm font-medium" style="color: var(--text-body)">Daftar Aktivitas</label>
+        <button @click="addDetailRow" type="button" class="text-sm font-medium text-accent hover:underline cursor-pointer">
+         + Tambah Aktivitas
+        </button>
+       </div>
+       
+       <div v-for="(detail, index) in form.details" :key="index" class="p-4 rounded-xl border border-[var(--border)] flex flex-col gap-4 relative">
+        <button v-if="form.details.length > 1" @click="removeDetailRow(index)" type="button" class="absolute top-3 right-3 text-red-500 hover:bg-red-500/10 p-1.5 rounded-lg cursor-pointer transition-colors" title="Hapus baris">
+         <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+        
+        <div class="flex flex-col md:flex-row gap-4">
+         <div class="flex flex-col gap-1.5 flex-1">
+          <label class="text-xs font-medium" style="color: var(--text-muted)">Jenis Kegiatan</label>
+          <VueMultiselect
+           v-model="detail.masterKegiatanOption"
+           :options="masterKegiatanOptions"
+           :close-on-select="true"
+           :searchable="true"
+           :allow-empty="false"
+           :show-labels="false"
+           label="name_with_point"
+           track-by="id"
+           placeholder="Pilih Kegiatan"
+          />
+         </div>
+         <div class="flex flex-col gap-1.5 flex-1">
+          <label class="text-xs font-medium" style="color: var(--text-muted)">Keterangan / Deskripsi (Opsional)</label>
+          <input v-model="detail.keterangan" type="text" class="filter-input w-full rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent" placeholder="Contoh: Mengajar kelas 1A" />
+         </div>
+        </div>
+       </div>
+      </div>
+      
+      <div v-if="formError" class="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{{ formError }}</div>
+     </div>
+
+     <div class="p-6 shrink-0 border-t border-[var(--border)] flex justify-between items-center bg-[var(--bg-input)] rounded-b-2xl">
+      <div class="flex items-center gap-2 shrink-0">
+       <span class="text-sm font-medium" style="color: var(--text-muted)">Estimasi Poin:</span>
+       <span class="font-bold text-lg" style="color: var(--text-heading)">{{ calculatedPoints }}</span>
+      </div>
+      <div class="flex justify-end gap-3">
+       <button @click="showModal = false" class="px-5 py-2 rounded-lg text-sm font-medium cursor-pointer" style="color: var(--text-body); border: 1px solid var(--border)">Batal</button>
+       <button @click="saveData" :disabled="formLoading" class="flex items-center gap-2 px-5 py-2 rounded-lg bg-accent text-sm font-bold cursor-pointer active:scale-95 disabled:opacity-50" style="color: var(--text-btn)">
+        <span v-if="formLoading" class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+        {{ editingData ? 'Simpan' : 'Submit' }}
+       </button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </Transition>
+
+ </div>
+</template>
+
+<script setup>
+import AdminLayout from '../../../Layouts/AdminLayout.vue'
+
+defineOptions({ layout: AdminLayout })
+
+import { ref, computed, onMounted, watch } from 'vue'
+import VueMultiselect from 'vue-multiselect'
+import 'vue-multiselect/dist/vue-multiselect.css'
+import { useKegiatanAsatidzStore } from '../../../stores/kegiatanAsatidz'
+import { useAuthStore } from '../../../stores/auth'
+import api from '../../../axios'
+
+const store = useKegiatanAsatidzStore()
+const authStore = useAuthStore()
+
+const filterDate = ref('')
+
+const perPageOptions = [
+ { name: '10', value: 10 },
+ { name: '25', value: 25 },
+ { name: '50', value: 50 }
+]
+
+const perPage = ref(perPageOptions[0])
+const currentPage = ref(1)
+
+// ── Master Kegiatan ──
+const masterKegiatans = ref([])
+const masterKegiatanOptions = computed(() => {
+ return masterKegiatans.value.map(k => ({
+  id: k.id,
+  nama: k.nama,
+  poin: k.poin,
+  name_with_point: `${k.nama} (${k.poin} Poin)`
+ }))
+})
+
+async function fetchMasterKegiatans() {
+ try {
+  const { data } = await api.get('/master-kegiatan', { params: { per_page: 100 } })
+  // Filter active if needed, currently loading all
+  masterKegiatans.value = data.data.filter(k => k.status === 'Aktif')
+ } catch (e) {
+  console.error(e)
+ }
+}
+
+// ── Modal state ──
+const showModal = ref(false)
+const editingData = ref(null)
+const form = ref({ tanggal_kegiatan: '', details: [] })
+const formError = ref('')
+const formLoading = ref(false)
+
+const calculatedPoints = computed(() => {
+ let total = 0
+ form.value.details.forEach(d => {
+  if (d.masterKegiatanOption) total += d.masterKegiatanOption.poin
+ })
+ return total
+})
+
+function addDetailRow() {
+ form.value.details.push({ masterKegiatanOption: null, keterangan: '' })
+}
+function removeDetailRow(index) {
+ form.value.details.splice(index, 1)
+}
+
+// ── Fetch ──
+function loadData() {
+ store.fetchKegiatans({
+  tanggal: filterDate.value || undefined,
+  per_page: perPage.value.value,
+  page: currentPage.value,
+ })
+}
+
+onMounted(() => {
+ loadData()
+ if (authStore.user?.role?.name === 'Asatidz') {
+  fetchMasterKegiatans()
+ }
+})
+
+// Watchers
+watch([filterDate, perPage], () => { currentPage.value = 1; loadData() })
+
+function clearFilter() {
+ filterDate.value = ''
+}
+
+// ── Pagination ──
+function goToPage(page) {
+ if (page >= 1 && page <= store.pagination.lastPage) {
+  currentPage.value = page
+  loadData()
+ }
+}
+
+const pageNumbers = computed(() => {
+ const last = store.pagination.lastPage || 1
+ const curr = currentPage.value
+ const pages = []
+ for (let i = 1; i <= last; i++) {
+  if (i === 1 || i === last || (i >= curr - 1 && i <= curr + 1)) {
+   pages.push(i)
+  } else if (pages[pages.length - 1] !== '...') {
+   pages.push('...')
+  }
+ }
+ return pages
+})
+
+// ── CRUD ──
+function openCreateModal() {
+ editingData.value = null
+ const today = new Date().toISOString().split('T')[0]
+ form.value = { tanggal_kegiatan: today, details: [{ masterKegiatanOption: null, keterangan: '' }] }
+ formError.value = ''
+ showModal.value = true
+}
+
+function openEditModal(item) {
+ editingData.value = item
+ form.value = {
+  tanggal_kegiatan: item.tanggal_kegiatan.split('T')[0],
+  details: item.details.map(d => ({
+   masterKegiatanOption: masterKegiatanOptions.value.find(o => o.id === d.master_kegiatan_id) || null,
+   keterangan: d.keterangan || ''
+  }))
+ }
+ formError.value = ''
+ showModal.value = true
+}
+
+async function saveData() {
+ formError.value = ''
+ 
+ // Validation
+ if (!form.value.tanggal_kegiatan) {
+  formError.value = 'Tanggal kegiatan harus diisi.'
+  return
+ }
+ 
+ const invalidDetails = form.value.details.filter(d => !d.masterKegiatanOption)
+ if (invalidDetails.length > 0) {
+  formError.value = 'Semua baris aktivitas harus dipilih jenis kegiatannya.'
+  return
+ }
+ 
+ formLoading.value = true
+ try {
+  const payload = {
+   tanggal_kegiatan: form.value.tanggal_kegiatan,
+   details: form.value.details.map(d => ({
+    master_kegiatan_id: d.masterKegiatanOption.id,
+    keterangan: d.keterangan
+   }))
+  }
+
+  if (editingData.value) {
+   await store.updateKegiatan(editingData.value.id, payload)
+  } else {
+   await store.createKegiatan(payload)
+  }
+  showModal.value = false
+  loadData()
+ } catch (e) {
+  const errors = e.response?.data?.errors
+  if (errors) {
+   formError.value = Object.values(errors).flat().join(' ')
+  } else {
+   formError.value = e.response?.data?.message || 'Terjadi kesalahan.'
+  }
+ } finally {
+  formLoading.value = false
+ }
+}
+
+async function confirmDelete(item) {
+ if (!confirm(`Hapus data kegiatan tanggal ${formatDate(item.tanggal_kegiatan)}?`)) return
+ try {
+  await store.deleteKegiatan(item.id)
+  loadData()
+ } catch (e) {
+  alert(e.response?.data?.message || 'Gagal menghapus kegiatan.')
+ }
+}
+
+// ── Helpers ──
+function formatDate(dateStr) {
+ if (!dateStr) return '-'
+ const date = new Date(dateStr)
+ return date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+}
+</script>
+
+<style scoped>
+/* ═══ Filter Inputs ═══ */
+.filter-input {
+ background: var(--bg-card);
+ border: 1px solid var(--border);
+ color: var(--text-heading);
+ transition: box-shadow 0.3s ease;
+}
+.filter-input::placeholder { color: var(--text-muted); }
+.filter-input:hover { box-shadow: 0 0 15px rgba(37, 99, 235, 0.15); }
+.filter-input:focus { border-color: var(--color-accent); box-shadow: 0 0 12px rgba(37, 99, 235, 0.3); }
+
+/* ═══ Badges ═══ */
+.admin-badge {
+ --badge-color: #94a3b8;
+ --badge-bg: rgba(148, 163, 184, 0.12);
+ --badge-border: rgba(148, 163, 184, 0.28);
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ min-height: 1.75rem;
+ border-radius: 999px;
+ padding: 0.25rem 0.7rem;
+ border: 1px solid var(--badge-border);
+ background: var(--badge-bg);
+ color: var(--badge-color);
+ font-size: 0.75rem;
+ font-weight: 700;
+ line-height: 1;
+ white-space: nowrap;
+}
+.admin-badge--sky { --badge-color: #38bdf8; --badge-bg: rgba(14, 165, 233, 0.14); --badge-border: rgba(14, 165, 233, 0.3); }
+
+:global(.admin-root[data-theme="light"]) .admin-badge--sky { --badge-color: #0369a1; --badge-bg: #e0f2fe; --badge-border: #7dd3fc; }
+
+/* ═══ Action Buttons ═══ */
+.action-btn { color: var(--text-muted); }
+.action-btn:hover { color: var(--color-accent); background: var(--bg-input); }
+.action-btn-delete:hover { color: #f87171; background: var(--bg-input); }
+
+/* ═══ Pagination ═══ */
+.pagination-bar { border-top: 1px solid var(--border); background: var(--bg-card); }
+.page-btn { color: var(--text-muted); border: 1px solid transparent; transition: all 0.2s ease; }
+.page-btn:hover { background: var(--bg-input); color: var(--text-heading); }
+.page-btn-active { background: var(--color-accent); color: var(--text-btn); box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
+
+/* ═══ Modal ═══ */
+.modal-card { background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+</style>

@@ -16,6 +16,7 @@
     <option value="created">Tambah</option>
     <option value="updated">Edit</option>
     <option value="deleted">Hapus</option>
+    <option value="login">Login</option>
    </select>
   </div>
 
@@ -131,6 +132,7 @@ function actionLabel(value) {
  if (value === 'created') return 'Tambah'
  if (value === 'updated') return 'Edit'
  if (value === 'deleted') return 'Hapus'
+ if (value === 'login') return 'Login'
  return value
 }
 
@@ -138,6 +140,7 @@ function actionBadge(value) {
  if (value === 'created') return 'app-badge app-badge--success'
  if (value === 'updated') return 'app-badge app-badge--blue'
  if (value === 'deleted') return 'app-badge app-badge--red'
+ if (value === 'login') return 'app-badge app-badge--purple'
  return 'app-badge app-badge--neutral'
 }
 

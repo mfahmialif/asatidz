@@ -101,7 +101,7 @@
        <tr v-for="log in activityLog" :key="log.time" class="table-row-hover">
         <td class="px-6 py-3 text-sm font-mono" style="color: var(--text-muted)">{{ log.time }}</td>
         <td class="px-6 py-3">
-         <div class="flex items-center gap-2">
+         <div class="flex items-center gap-2 shrink-0">
           <span class="material-symbols-outlined text-[18px]" :class="log.iconColor">{{ log.icon }}</span>
           <span class="text-sm font-medium" style="color: var(--text-heading)">{{ log.activity }}</span>
          </div>

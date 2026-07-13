@@ -1,5 +1,5 @@
 <template>
- <header :class="['top-header flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 shrink-0 transition-colors duration-500', layoutMode === 'horizontal' ? 'horiz-mode' : '']">
+ <header :class="['top-header relative z-[70] flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 shrink-0 transition-colors duration-500', layoutMode === 'horizontal' ? 'horiz-mode' : '']">
   <div class="flex items-center gap-3">
    <!-- Hamburger (mobile only) -->
    <button @click="$emit('toggle-sidebar')"
@@ -445,4 +445,11 @@ onBeforeUnmount(() => {
 .icon-swap-leave-active { transition: all 0.2s ease; }
 .icon-swap-enter-from { opacity: 0; transform: rotate(-90deg) scale(0.5); }
 .icon-swap-leave-to { opacity: 0; transform: rotate(90deg) scale(0.5); }
+
+/* ═══ Modal Open Hack ═══ */
+:global(.admin-root:has(.fixed.inset-0) .top-header),
+:global(.admin-root:has(.fixed.inset-0) .admin-sidebar-wrapper),
+:global(.admin-root:has(.fixed.inset-0) .horiz-nav) {
+ z-index: 0 !important;
+}
 </style>

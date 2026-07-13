@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
- private const DASHBOARD_ROLES = ['Admin', 'Operator', 'Penulis', 'Kepala Penulis'];
+ private const DASHBOARD_ROLES = ['Admin', 'Operator', 'Penulis', 'Kepala Penulis', 'Asatidz'];
 
  /**
   * Login dan buat session cookie.
@@ -53,6 +53,17 @@ class AuthController extends Controller
 
   Auth::login($user, $request->boolean('remember'));
   $request->session()->regenerate();
+
+  \App\Models\ActivityLog::create([
+   'user_id' => $user->id,
+   'module' => 'Auth',
+   'action' => 'login',
+   'subject_type' => User::class,
+   'subject_id' => $user->id,
+   'subject_title' => substr($user->name ?? $user->username, 0, 255),
+   'description' => 'User berhasil login',
+   'properties' => ['ip' => $request->ip(), 'user_agent' => $request->userAgent()],
+  ]);
 
   // Update last active
   $user->update(['last_active_at' => now()]);
@@ -143,6 +154,17 @@ class AuthController extends Controller
   Auth::login($user);
   $request->session()->regenerate();
 
+  \App\Models\ActivityLog::create([
+   'user_id' => $user->id,
+   'module' => 'Auth',
+   'action' => 'login',
+   'subject_type' => User::class,
+   'subject_id' => $user->id,
+   'subject_title' => substr($user->name ?? $user->username, 0, 255),
+   'description' => 'User berhasil login dengan Google',
+   'properties' => ['ip' => $request->ip(), 'user_agent' => $request->userAgent()],
+  ]);
+
   $user->load('role:id,name');
 
   return response()->json([
@@ -163,6 +185,12 @@ class AuthController extends Controller
 
  public function register(Request $request)
  {
+  if (!AppSetting::getValue('enable_registration', true)) {
+   throw ValidationException::withMessages([
+    'email' => ['Pendaftaran akun baru saat ini ditutup.'],
+   ]);
+  }
+
   $data = $request->validate([
    'name' => 'nullable|string|max:255',
    'email' => 'required|email|max:255',
@@ -239,6 +267,17 @@ class AuthController extends Controller
 
   Auth::login($user);
   $request->session()->regenerate();
+
+  \App\Models\ActivityLog::create([
+   'user_id' => $user->id,
+   'module' => 'Auth',
+   'action' => 'login',
+   'subject_type' => User::class,
+   'subject_id' => $user->id,
+   'subject_title' => substr($user->name ?? $user->username, 0, 255),
+   'description' => 'User berhasil memverifikasi email dan login',
+   'properties' => ['ip' => $request->ip(), 'user_agent' => $request->userAgent()],
+  ]);
 
   $user->load('role:id,name');
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'description', 'status'])]
 class Role extends Model
 {
+ use \App\Traits\LogsActivity;
  public function users(): HasMany
  {
   return $this->hasMany(User::class);

@@ -1,7 +1,7 @@
 <template>
  <div class="settings-card rounded-xl overflow-hidden">
   <div class="card-header px-6 py-4 flex items-center justify-between gap-4">
-   <div class="flex items-center gap-2">
+   <div class="flex items-center gap-2 shrink-0">
     <span class="material-symbols-outlined text-accent text-[20px]">dashboard_customize</span>
     <h3 class="font-bold" style="color: var(--text-heading)">Pengaturan Landing Page</h3>
    </div>

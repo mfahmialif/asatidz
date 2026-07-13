@@ -2,7 +2,7 @@
  <div class="flex flex-col gap-6">
   <div class="settings-card rounded-xl overflow-hidden">
    <div class="card-header px-6 py-4 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
      <span class="material-symbols-outlined text-accent text-[20px]">tune</span>
      <h3 class="font-bold" style="color: var(--text-heading)">Pengaturan Umum</h3>
     </div>
@@ -129,11 +129,9 @@
    </div>
   </div>
 
-  <LandingSettings ref="landingSettingsRef" />
-
   <div class="settings-card rounded-xl overflow-hidden">
    <div class="card-header px-6 py-4 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
      <span class="material-symbols-outlined text-accent text-[20px]">login</span>
      <h3 class="font-bold" style="color: var(--text-heading)">Pengaturan Login</h3>
     </div>
@@ -145,27 +143,21 @@
    <div class="px-6 py-5 space-y-6">
     <div class="setting-row">
      <div class="setting-label">
-      <h4 class="text-sm font-bold" style="color: var(--text-heading)">Gambar Panel Login</h4>
-      <p class="text-xs mt-0.5" style="color: var(--text-muted)">Gambar besar di sisi kiri halaman login desktop. Format: png, jpg, jpeg, atau webp.</p>
+      <h4 class="text-sm font-bold" style="color: var(--text-heading)">Status Pendaftaran Akun</h4>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted)">Izinkan pengguna baru untuk mendaftar akun dari halaman login</p>
      </div>
      <div class="setting-control">
-      <div class="login-image-control">
-       <div class="login-image-preview">
-        <img v-if="loginImagePreview" :src="loginImagePreview" alt="Preview gambar login" />
-        <div v-else class="login-image-empty">
-         <span class="material-symbols-outlined">image</span>
-         <p>Belum ada gambar custom</p>
-        </div>
-       </div>
-       <label class="upload-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold cursor-pointer transition-all">
-        <span class="material-symbols-outlined text-[16px]">cloud_upload</span>
-        Upload Gambar Login
-        <input class="sr-only" type="file" accept=".png,.jpg,.jpeg,.webp,image/*" @change="handleLoginImageChange" />
-       </label>
-      </div>
+      <label class="inline-flex items-center gap-3 cursor-pointer">
+       <input v-model="enableRegistration" type="checkbox" class="sr-only" />
+       <span class="checkbox-box">
+        <span class="material-symbols-outlined text-[15px]">check</span>
+       </span>
+       <span class="text-sm font-bold" style="color: var(--text-heading)">
+        {{ enableRegistration ? 'Pendaftaran Dibuka' : 'Pendaftaran Ditutup' }}
+       </span>
+      </label>
      </div>
     </div>
-
     <Transition name="fade">
      <div v-if="loginMessage.text" class="message-box" :class="loginMessage.type">
       <span class="material-symbols-outlined text-[18px]">{{ loginMessage.type === 'success' ? 'check_circle' : 'error' }}</span>
@@ -177,7 +169,7 @@
 
   <div class="settings-card rounded-xl overflow-hidden">
    <div class="card-header px-6 py-4 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
      <span class="material-symbols-outlined text-accent text-[20px]">palette</span>
      <h3 class="font-bold" style="color: var(--text-heading)">Warna Tema</h3>
     </div>
@@ -224,7 +216,7 @@
 
   <div class="settings-card rounded-xl overflow-hidden">
    <div class="card-header px-6 py-4 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
      <span class="material-symbols-outlined text-accent text-[20px]">outgoing_mail</span>
      <h3 class="font-bold" style="color: var(--text-heading)">Pengaturan Email SMTP</h3>
     </div>
@@ -372,7 +364,7 @@
 
   <div class="settings-card rounded-xl overflow-hidden">
    <div class="card-header px-6 py-4 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
      <span class="material-symbols-outlined text-accent text-[20px]">passkey</span>
      <h3 class="font-bold" style="color: var(--text-heading)">Login Google</h3>
     </div>
@@ -570,7 +562,6 @@ import 'vue-multiselect/dist/vue-multiselect.css'
 import api from '../../../axios'
 import { applyAccentColor as applyGlobalAccentColor } from '../../../utils/appearance'
 import { backendAssetUrl } from '../../../utils/asset'
-import LandingSettings from './LandingSettings.vue'
 
 const systemName = ref('Asatidz ')
 const selectedAccent = ref('#2563eb')
@@ -583,8 +574,7 @@ const navbarTextSubtitle = ref('Program Studi')
 const navbarIconSelect = ref(null)
 const navbarLogoFile = ref(null)
 const navbarLogoPreview = ref('')
-const loginImageFile = ref(null)
-const loginImagePreview = ref('')
+const enableRegistration = ref(true)
 const savingGeneral = ref(false)
 const savingLogin = ref(false)
 const savingEmail = ref(false)
@@ -592,7 +582,6 @@ const savingGoogle = ref(false)
 const savingAll = ref(false)
 const googleRoles = ref([])
 const emailRoles = ref([])
-const landingSettingsRef = ref(null)
 const isSaving = computed(() => savingAll.value || savingGeneral.value || savingLogin.value || savingEmail.value || savingGoogle.value)
 const SAVE_TIMEOUT_MS = 20000
 const MIN_LOADER_MS = 350
@@ -825,14 +814,6 @@ function handleNavbarLogoChange(event) {
  navbarBrandMode.value = 'logo'
 }
 
-function handleLoginImageChange(event) {
- const file = event.target.files?.[0]
- if (!file) return
-
- loginImageFile.value = file
- loginImagePreview.value = URL.createObjectURL(file)
-}
-
 async function loadGeneralSettings() {
  try {
   const { data } = await api.get('/settings/general')
@@ -898,7 +879,7 @@ async function saveGeneralSettings() {
 }
 
 function fillLoginForm(data) {
- loginImagePreview.value = backendAssetUrl(data.image_path || data.image_url)
+ enableRegistration.value = data.enable_registration ?? true
 }
 
 async function loadLoginSettings() {
@@ -920,9 +901,7 @@ async function saveLoginSettings() {
  loginMessage.text = ''
 
  const formData = new FormData()
- if (loginImageFile.value) {
-  formData.append('login_image', loginImageFile.value)
- }
+ formData.append('enable_registration', enableRegistration.value ? '1' : '0')
 
  try {
   const { data } = await api.post('/settings/login', formData, {
@@ -931,7 +910,6 @@ async function saveLoginSettings() {
    },
    timeout: SAVE_TIMEOUT_MS,
   })
-  loginImageFile.value = null
   fillLoginForm(data)
   loginMessage.type = 'success'
   loginMessage.text = 'Pengaturan login berhasil disimpan.'
@@ -1064,9 +1042,6 @@ async function saveAllSettings() {
  try {
   const generalSaved = await saveGeneralSettings()
   if (generalSaved) {
-   const landingSaved = await landingSettingsRef.value?.saveLandingSettings?.() ?? true
-   if (!landingSaved) return
-
    const loginSaved = await saveLoginSettings()
    if (loginSaved) {
     const emailSaved = await saveEmailSettings()
