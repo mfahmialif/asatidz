@@ -155,7 +155,7 @@
   <!-- ═══ MODAL ═══ -->
   <Teleport to=".admin-root" v-if="isMounted">
    <Transition name="modal-overlay">
-    <div v-if="showModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end lg:items-center justify-center p-0 lg:p-4" @click.self="showModal = false">
+    <div v-if="showModal" class="modal-overlay fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end lg:items-center justify-center p-0 lg:p-4" @click.self="showModal = false">
      <div class="modal-card w-full max-w-3xl max-h-[95vh] lg:max-h-[90vh] flex flex-col rounded-t-3xl rounded-b-none lg:rounded-2xl relative shadow-[0_-10px_40px_rgba(0,0,0,0.3)] lg:shadow-2xl"
           :style="{ transform: isDragging ? `translateY(${currentY}px)` : '', transition: isDragging ? 'none' : '' }"
           @touchstart="onTouchStart"
@@ -331,6 +331,10 @@ function onTouchMove(e) {
  
  if (deltaY > 0) {
   currentY.value = deltaY
+  // Mencegah pull-to-refresh pada mobile Chrome
+  if (e.cancelable) {
+   e.preventDefault()
+  }
  } else {
   currentY.value = 0
  }
@@ -543,7 +547,9 @@ function formatDate(dateStr) {
 .page-btn-active { background: var(--color-accent); color: var(--text-btn); box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
 
 /* ═══ Modal ═══ */
-.modal-card { background: var(--bg-card); border: 1px solid var(--border); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s; }
+.modal-card { background: var(--bg-card); border: 1px solid var(--border); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s; overscroll-behavior-y: none; touch-action: pan-y; }
+
+.modal-overlay { overscroll-behavior-y: none; touch-action: none; }
 
 .modal-overlay-enter-active, .modal-overlay-leave-active { transition: opacity 0.3s ease; }
 .modal-overlay-enter-from, .modal-overlay-leave-to { opacity: 0; }

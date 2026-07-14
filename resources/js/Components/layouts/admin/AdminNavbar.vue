@@ -19,19 +19,11 @@
     <span class="material-symbols-outlined text-[22px]">search</span>
    </button>
 
-   <!-- ★ Theme Toggle ★ -->
-   <button @click="$emit('toggle-theme')"
-       class="theme-toggle relative p-2 rounded-full transition-all duration-500 cursor-pointer"
-       :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-    <Transition name="icon-swap" mode="out-in">
-     <span v-if="isDark" key="dark" class="material-symbols-outlined text-[22px]">light_mode</span>
-     <span v-else key="light" class="material-symbols-outlined text-[22px]">dark_mode</span>
-    </Transition>
-   </button>
+
 
    <!-- ★ Layout Toggle ★ -->
    <button @click="$emit('toggle-layout')"
-       class="theme-toggle relative p-2 rounded-full transition-all duration-500 cursor-pointer"
+       class="theme-toggle relative p-2 rounded-full transition-all duration-500 cursor-pointer hidden lg:block"
        :title="layoutMode === 'vertical' ? 'Horizontal Layout' : 'Vertical Layout'">
     <Transition name="icon-swap" mode="out-in">
      <span v-if="layoutMode === 'vertical'" key="vert" class="material-symbols-outlined text-[22px]">horizontal_distribute</span>
@@ -105,6 +97,12 @@
         <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
         <span>Profile Saya</span>
        </Link>
+       
+       <button @click="$emit('toggle-theme')"
+           class="profile-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm transition-colors w-full text-left cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+        <span>{{ isDark ? 'Mode Terang' : 'Mode Gelap' }}</span>
+       </button>
        <button @click="handleLogout"
            class="profile-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm transition-colors w-full text-left cursor-pointer logout-item">
         <span class="material-symbols-outlined text-[20px]">logout</span>

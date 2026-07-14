@@ -4,12 +4,7 @@
    <h2 class="text-lg sm:text-xl font-bold text-heading tracking-tight ml-2">{{ pageTitle }}</h2>
   </div>
   <div class="flex items-center gap-2 sm:gap-4">
-   <button @click="$emit('toggle-theme')" class="theme-toggle relative p-2 rounded-full transition-all duration-500 cursor-pointer" :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-    <Transition name="icon-swap" mode="out-in">
-     <span v-if="isDark" key="dark" class="material-symbols-outlined text-[22px]">light_mode</span>
-     <span v-else key="light" class="material-symbols-outlined text-[22px]">dark_mode</span>
-    </Transition>
-   </button>
+
 
    <div class="relative" ref="profileDropdownRef">
     <div @click="profileOpen = !profileOpen" class="avatar-ring w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-accent overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity shadow-[0_0_10px_rgba(37, 99, 235,0.3)] flex items-center justify-center">
@@ -26,6 +21,10 @@
         <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
         <span>Profil Saya</span>
        </Link>
+       <button @click="$emit('toggle-theme')" class="profile-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm transition-colors w-full text-left cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+        <span>{{ isDark ? 'Mode Terang' : 'Mode Gelap' }}</span>
+       </button>
        <button @click="handleLogout" class="profile-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm transition-colors w-full text-left cursor-pointer logout-item">
         <span class="material-symbols-outlined text-[20px]">logout</span>
         <span>Logout</span>

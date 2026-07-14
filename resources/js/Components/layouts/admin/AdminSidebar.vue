@@ -18,9 +18,8 @@
    </button>
   </div>
 
-  <div class="flex-1 min-h-0">
-   <simplebar class="h-full" :auto-hide="true">
-    <nav class="flex flex-col gap-1 pr-1">
+  <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+    <nav class="flex flex-col gap-1 pr-1 pb-4">
      <template v-for="section in filteredNavSections" :key="section.label">
       <div v-if="section.label" class="section-heading mt-5 mb-1 px-3" :class="collapsed ? 'is-collapsed' : ''">
        <p v-if="!collapsed" class="text-xs font-bold uppercase tracking-wider text-muted">{{ section.label }}</p>
@@ -47,15 +46,12 @@
       <span class="sidebar-label text-base leading-normal" v-if="!collapsed">Logout</span>
      </button>
     </nav>
-   </simplebar>
   </div>
  </aside>
 </template>
 
 <script setup>
 import { usePage } from '@inertiajs/vue3'
-import simplebar from 'simplebar-vue'
-import 'simplebar-vue/dist/simplebar.min.css'
 import { useAuthStore } from '../../../stores/auth'
 
 
@@ -144,16 +140,21 @@ function handleLogout() {
 </script>
 
 <style scoped>
-.sidebar :deep(.simplebar-scrollbar::before) {
+.custom-scrollbar::-webkit-scrollbar {
+ width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+ background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
  background: var(--border-light);
  border-radius: 999px;
  opacity: 0;
- transition: opacity 0.4s ease;
+ transition: background 0.4s ease;
 }
-.sidebar :deep(.simplebar-scrollbar.simplebar-visible::before) { opacity: 0.7; }
-.sidebar:hover :deep(.simplebar-scrollbar::before) { opacity: 0.5; }
-.sidebar :deep(.simplebar-track.simplebar-vertical) { width: 8px; right: 0; }
-.sidebar :deep(.simplebar-track.simplebar-horizontal) { display: none; }
+.sidebar:hover .custom-scrollbar::-webkit-scrollbar-thumb {
+ background: var(--text-muted);
+}
 
 .sidebar { background: var(--bg-sidebar); }
 .close-btn { color: var(--text-muted); }
