@@ -16,24 +16,23 @@
     </div>
     <!-- Info -->
     <div class="text-center sm:text-left flex-1">
-     <h2 class="text-2xl font-bold" style="color: var(--text-heading)">Administrator</h2>
-     <p class="text-sm mt-1" style="color: var(--text-muted)">admin@asatidz.id</p>
+     <h2 class="text-2xl font-bold" style="color: var(--text-heading)">{{ userData?.name || 'Administrator' }}</h2>
+     <p class="text-sm mt-1" style="color: var(--text-muted)">{{ userData?.email || 'admin@asatidz.id' }}</p>
      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
-      <span class="app-badge app-badge--blue gap-1.5">
+      <span class="app-badge app-badge--blue gap-1.5 flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500">
        <span class="material-symbols-outlined text-[14px]">shield</span>
-       Super Admin
+       {{ userData?.role?.name || 'Super Admin' }}
       </span>
-      <span class="app-badge app-badge--success gap-1.5">
-       <span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background: var(--badge-color)"></span>
+      <span class="app-badge app-badge--success gap-1.5 flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-500">
+       <span class="w-1.5 h-1.5 rounded-full animate-pulse bg-green-500"></span>
        Online
       </span>
      </div>
-     <p class="text-xs mt-3" style="color: var(--text-muted)">Bergabung sejak 1 Januari 2024 · Terakhir login: Hari ini, 21:30 WIB</p>
     </div>
     <!-- Edit Button -->
-    <button class="btn-edit flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer shrink-0">
-     <span class="material-symbols-outlined text-[18px]">edit</span>
-     Edit Profil
+    <button @click="toggleEdit" class="btn-edit flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer shrink-0">
+     <span class="material-symbols-outlined text-[18px]">{{ isEditing ? 'close' : 'edit' }}</span>
+     {{ isEditing ? 'Batal' : 'Edit Profil' }}
     </button>
    </div>
   </div>
@@ -41,76 +40,82 @@
   <!-- ═══ INFO GRID ═══ -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-   <!-- Personal Info -->
+   <!-- Personal Info / Edit Form -->
    <div class="info-card rounded-xl overflow-hidden">
     <div class="card-header px-6 py-4 flex items-center justify-between">
      <h3 class="font-bold flex items-center gap-2" style="color: var(--text-heading)">
       <span class="material-symbols-outlined text-accent text-[20px]">person</span>
-      Informasi Pribadi
+      {{ isEditing ? 'Edit Informasi Pribadi' : 'Informasi Pribadi' }}
      </h3>
     </div>
-    <div class="px-6 py-4 space-y-4">
-     <div v-for="field in personalFields" :key="field.label" class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
-      <span class="text-sm font-medium w-40 shrink-0" style="color: var(--text-muted)">{{ field.label }}</span>
-      <span class="text-sm font-bold" style="color: var(--text-heading)">{{ field.value }}</span>
-     </div>
+    <div class="px-6 py-4">
+     <form @submit.prevent="submitProfile" class="flex flex-col gap-5">
+      <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-medium" style="color: var(--text-body)">Nama Lengkap</label>
+       <input v-if="isEditing" v-model="form.name" type="text" required class="filter-input w-full rounded-xl py-2 px-3 text-sm bg-[var(--bg-input)] text-[var(--text-heading)] border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-accent" />
+       <div v-else class="py-1 text-sm font-bold" style="color: var(--text-heading)">{{ userData?.name }}</div>
+       <div v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</div>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-medium" style="color: var(--text-body)">Email</label>
+       <input v-if="isEditing" v-model="form.email" type="email" required class="filter-input w-full rounded-xl py-2 px-3 text-sm bg-[var(--bg-input)] text-[var(--text-heading)] border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-accent" />
+       <div v-else class="py-1 text-sm font-bold" style="color: var(--text-heading)">{{ userData?.email }}</div>
+       <div v-if="form.errors.email" class="text-red-500 text-xs mt-1">{{ form.errors.email }}</div>
+      </div>
+
+      <Transition name="fade">
+       <div v-if="isEditing" class="mt-2 flex justify-end">
+        <button type="submit" :disabled="form.processing" class="btn-edit px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+         <span v-else class="material-symbols-outlined text-[18px]">save</span>
+         Simpan Perubahan
+        </button>
+       </div>
+      </Transition>
+     </form>
     </div>
    </div>
 
-   <!-- Account Info -->
+   <!-- Account Info & Password Update -->
    <div class="info-card rounded-xl overflow-hidden">
     <div class="card-header px-6 py-4 flex items-center justify-between">
      <h3 class="font-bold flex items-center gap-2" style="color: var(--text-heading)">
       <span class="material-symbols-outlined text-accent text-[20px]">security</span>
-      Informasi Akun
+      Ubah Password
      </h3>
     </div>
-    <div class="px-6 py-4 space-y-4">
-     <div v-for="field in accountFields" :key="field.label" class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
-      <span class="text-sm font-medium w-40 shrink-0" style="color: var(--text-muted)">{{ field.label }}</span>
-      <span class="text-sm font-bold" style="color: var(--text-heading)">{{ field.value }}</span>
-     </div>
-     <div class="pt-2">
-      <button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer btn-secondary">
-       <span class="material-symbols-outlined text-[18px]">lock_reset</span>
-       Ubah Password
-      </button>
-     </div>
-    </div>
-   </div>
-
-   <!-- Activity Log -->
-   <div class="info-card rounded-xl overflow-hidden lg:col-span-2">
-    <div class="card-header px-6 py-4 flex items-center justify-between">
-     <h3 class="font-bold flex items-center gap-2" style="color: var(--text-heading)">
-      <span class="material-symbols-outlined text-accent text-[20px]">history</span>
-      Aktivitas Terakhir
-     </h3>
-    </div>
-    <div class="overflow-x-auto">
-     <table class="w-full text-left border-collapse">
-      <thead>
-       <tr class="table-head">
-        <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted)">Waktu</th>
-        <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted)">Aktivitas</th>
-        <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted)">IP Address</th>
-        <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--text-muted)">Device</th>
-       </tr>
-      </thead>
-      <tbody class="table-body">
-       <tr v-for="log in activityLog" :key="log.time" class="table-row-hover">
-        <td class="px-6 py-3 text-sm font-mono" style="color: var(--text-muted)">{{ log.time }}</td>
-        <td class="px-6 py-3">
-         <div class="flex items-center gap-2 shrink-0">
-          <span class="material-symbols-outlined text-[18px]" :class="log.iconColor">{{ log.icon }}</span>
-          <span class="text-sm font-medium" style="color: var(--text-heading)">{{ log.activity }}</span>
-         </div>
-        </td>
-        <td class="px-6 py-3 text-sm font-mono" style="color: var(--text-muted)">{{ log.ip }}</td>
-        <td class="px-6 py-3 text-sm" style="color: var(--text-muted)">{{ log.device }}</td>
-       </tr>
-      </tbody>
-     </table>
+    <div class="px-6 py-4">
+     <form @submit.prevent="submitPassword" class="flex flex-col gap-5">
+      <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-medium" style="color: var(--text-body)">Password Saat Ini</label>
+       <input v-model="pwdForm.current_password" type="password" required class="filter-input w-full rounded-xl py-2 px-3 text-sm bg-[var(--bg-input)] text-[var(--text-heading)] border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-accent" />
+       <div v-if="pwdForm.errors.current_password" class="text-red-500 text-xs mt-1">{{ pwdForm.errors.current_password }}</div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-medium" style="color: var(--text-body)">Password Baru</label>
+       <input v-model="pwdForm.password" type="password" required class="filter-input w-full rounded-xl py-2 px-3 text-sm bg-[var(--bg-input)] text-[var(--text-heading)] border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-accent" />
+       <div v-if="pwdForm.errors.password" class="text-red-500 text-xs mt-1">{{ pwdForm.errors.password }}</div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-medium" style="color: var(--text-body)">Konfirmasi Password</label>
+       <input v-model="pwdForm.password_confirmation" type="password" required class="filter-input w-full rounded-xl py-2 px-3 text-sm bg-[var(--bg-input)] text-[var(--text-heading)] border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-accent" />
+       <div v-if="pwdForm.errors.password_confirmation" class="text-red-500 text-xs mt-1">{{ pwdForm.errors.password_confirmation }}</div>
+      </div>
+      <div class="mt-2 flex items-center gap-4 justify-end">
+       <Transition name="fade">
+        <span v-if="pwdForm.recentlySuccessful" class="text-sm text-green-500 font-bold flex items-center gap-1">
+         <span class="material-symbols-outlined text-[16px]">check_circle</span>
+         Tersimpan
+        </span>
+       </Transition>
+       <button type="submit" :disabled="pwdForm.processing" class="btn-secondary px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+        <span v-if="pwdForm.processing" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+        <span v-else class="material-symbols-outlined text-[18px]">lock_reset</span>
+        Update Password
+       </button>
+      </div>
+     </form>
     </div>
    </div>
 
@@ -119,33 +124,60 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useForm } from '@inertiajs/vue3'
 import AdminLayout from '../../../Layouts/AdminLayout.vue'
 
 defineOptions({ layout: AdminLayout })
 
-const personalFields = [
- { label: 'Nama Lengkap', value: 'Muhammad Rizki Al-Farisi' },
- { label: 'Jabatan', value: 'IT Administrator' },
- { label: 'Unit', value: 'Divisi Media & Teknologi' },
- { label: 'No. Telepon', value: '+62 812-3456-7890' },
- { label: 'Alamat', value: 'Pesantren, Pasuruan' }
-]
+const props = defineProps({
+ userData: { type: Object, default: () => ({}) }
+})
 
-const accountFields = [
- { label: 'Username', value: 'admin' },
- { label: 'Email', value: 'admin@asatidz.id' },
- { label: 'Role', value: 'Super Admin' },
- { label: 'Status', value: 'Active' },
- { label: 'Last Login', value: 'Hari ini, 21:30 WIB' }
-]
+const isEditing = ref(false)
 
-const activityLog = [
- { time: '21:30', icon: 'login', iconColor: 'text-green-400', activity: 'Login berhasil', ip: '192.168.1.100', device: 'Chrome / Windows' },
- { time: '20:15', icon: 'edit', iconColor: 'text-accent', activity: 'Mengedit konten "Info Terkini"', ip: '192.168.1.100', device: 'Chrome / Windows' },
- { time: '19:45', icon: 'upload', iconColor: 'text-blue-400', activity: 'Upload video "Kajian Pagi"', ip: '192.168.1.100', device: 'Chrome / Windows' },
- { time: '18:00', icon: 'person_add', iconColor: 'text-accent', activity: 'Menambah user baru', ip: '192.168.1.100', device: 'Chrome / Windows' },
- { time: '14:30', icon: 'logout', iconColor: 'text-red-400', activity: 'Logout', ip: '192.168.1.100', device: 'Chrome / Windows' }
-]
+const form = useForm({
+ name: props.userData?.name || '',
+ email: props.userData?.email || '',
+})
+
+function toggleEdit() {
+ isEditing.value = !isEditing.value
+ if (!isEditing.value) {
+  form.reset()
+  form.clearErrors()
+ }
+}
+
+function submitProfile() {
+ form.post(route('admin.profile.update'), {
+  preserveScroll: true,
+  onSuccess: () => {
+   isEditing.value = false
+  }
+ })
+}
+
+const pwdForm = useForm({
+ current_password: '',
+ password: '',
+ password_confirmation: '',
+})
+
+function submitPassword() {
+ pwdForm.put(route('password.update'), {
+  preserveScroll: true,
+  onSuccess: () => pwdForm.reset(),
+  onError: () => {
+   if (pwdForm.errors.password) {
+    pwdForm.reset('password', 'password_confirmation')
+   }
+   if (pwdForm.errors.current_password) {
+    pwdForm.reset('current_password')
+   }
+  },
+ })
+}
 </script>
 
 <style scoped>
@@ -157,8 +189,9 @@ const activityLog = [
  background: var(--color-accent);
  color: var(--text-btn);
  box-shadow: 0 0 15px rgba(37, 99, 235, 0.2);
+ border: none;
 }
-.btn-edit:hover {
+.btn-edit:hover:not(:disabled) {
  box-shadow: 0 0 25px rgba(37, 99, 235, 0.4);
  transform: translateY(-1px);
 }
@@ -168,8 +201,11 @@ const activityLog = [
  color: var(--text-heading);
  border: 1px solid var(--border);
 }
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
  border-color: var(--color-accent);
  color: var(--color-accent);
 }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

@@ -30,7 +30,19 @@ Route::prefix('administrator')->middleware('auth:sanctum')->group(function () {
   Route::get('/asatidz', function () { return Inertia::render('admin/master-asatidz/Index', ['pageTitle' => 'Data Asatidz']); })->name('admin.asatidz');
   Route::get('/asatidz/{id}', function ($id) { return Inertia::render('admin/master-asatidz/Show', ['pageTitle' => 'Detail Asatidz', 'id' => $id]); })->name('admin.asatidz.show');
   Route::get('/kegiatan-asatidz', function () { return Inertia::render('admin/kegiatan-asatidz/Index', ['pageTitle' => 'Kegiatan Asatidz']); })->name('admin.kegiatan-asatidz');
-  Route::get('/profile', function () { return Inertia::render('admin/profile/Index', ['pageTitle' => 'Profile']); })->name('admin.profile');
+  Route::get('/profile', function () { 
+      $user = auth('sanctum')->user()->load('role');
+      return Inertia::render('admin/profile/Index', ['pageTitle' => 'Profile', 'userData' => $user]); 
+  })->name('admin.profile');
+  Route::post('/profile', function (\Illuminate\Http\Request $request) {
+      $user = auth('sanctum')->user();
+      $request->validate([
+          'name' => 'required|string',
+          'email' => 'required|email|unique:users,email,'.$user->id,
+      ]);
+      $user->update(['name' => $request->name, 'email' => $request->email]);
+      return redirect()->back();
+  })->name('admin.profile.update');
   Route::get('/pengaturan', function () { return Inertia::render('admin/pengaturan/Index', ['pageTitle' => 'Pengaturan']); })->name('admin.pengaturan');
 });
 
